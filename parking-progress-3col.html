@@ -1,0 +1,1234 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>行泊车性能爬坡进度管理</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --border:rgba(15, 23, 42, .10);
+      --shadow:0 8px 30px rgba(2, 6, 23, .06);
+      --primary:#2563eb;
+      --green:#16a34a;
+      --yellow:#f59e0b;
+      --red:#ef4444;
+      --gray:#94a3b8;
+      --radius:14px;
+      --radius-sm:10px;
+      --focus: 0 0 0 3px rgba(37, 99, 235, .25);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                   "Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC", Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .topbar{
+      background: linear-gradient(135deg, rgba(37,99,235,.95), rgba(96,165,250,.75));
+      color:#fff;
+      padding:22px 16px;
+      border-bottom:1px solid rgba(255,255,255,.20);
+    }
+    .topbar .wrap{ max-width:1440px; margin:0 auto; display:flex; align-items:flex-start; gap:12px; }
+    .title{
+      font-size:20px;
+      font-weight:900;
+      margin:0;
+      letter-spacing:.2px;
+      line-height:1.25;
+    }
+    .subtitle{
+      margin:6px 0 0 0;
+      font-size:12px;
+      color:rgba(255,255,255,.92);
+      line-height:1.6;
+    }
+    .pill{
+      margin-left:auto;
+      background: rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.20);
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:12px;
+      white-space:nowrap;
+      align-self:flex-start;
+    }
+
+    .wrap{ max-width:1440px; margin:14px auto 36px; padding:0 14px; }
+
+    .grid-head{
+      display:grid;
+      grid-template-columns: 220px 1fr 1fr;
+      gap:12px;
+      margin:8px 0 12px;
+      padding:0 4px;
+      color:var(--muted);
+      font-weight:950;
+      letter-spacing:.2px;
+      font-size:12px;
+    }
+    @media (max-width: 1100px){
+      .grid-head{ grid-template-columns:1fr; }
+    }
+
+    .model-card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      margin:12px 0;
+      transition: border-color .25s ease, box-shadow .25s ease, background-color .25s ease;
+    }
+    .model-card.done{
+      background:rgba(22,163,74,.04);
+      border-color:rgba(22,163,74,.55);
+      box-shadow:0 12px 30px rgba(22,163,74,.18);
+    }
+    .model-card.partial{
+      background:rgba(245,158,11,.04);
+      border-color:rgba(245,158,11,.45);
+      box-shadow:0 12px 30px rgba(245,158,11,.18);
+    }
+    .model-card.todo{
+      background:rgba(148,163,184,.03);
+      border-color:rgba(148,163,184,.45);
+    }
+    .model-row{
+      display:grid;
+      grid-template-columns: 220px 1fr 1fr;
+      gap:12px;
+      align-items:start;
+      padding:14px;
+    }
+    @media (max-width: 1100px){
+      .model-row{ grid-template-columns:1fr; }
+    }
+
+    .mcol-1{
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background: rgba(255,255,255,.7);
+    }
+    .mname{
+      font-size:15px;
+      font-weight:1000;
+      letter-spacing:.2px;
+      margin:0 0 6px;
+    }
+    .mmeta{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+      font-weight:800;
+      word-break:break-word;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:950;
+      border:1px solid var(--border);
+      background:#fff;
+      white-space:nowrap;
+      font-size:12px;
+    }
+    .badge.green{ border-color: rgba(22,163,74,.35); background:rgba(22,163,74,.08); color:#15803d; }
+    .badge.yellow{ border-color: rgba(245,158,11,.35); background:rgba(245,158,11,.10); color:#b45309; }
+    .badge.gray{ border-color: rgba(148,163,184,.35); background:rgba(148,163,184,.10); color:#475569; }
+    .badge.red{ border-color: rgba(239,68,68,.35); background:rgba(239,68,68,.08); color:#b91c1c; }
+    .badge.primary{ border-color: rgba(37,99,235,.35); background:rgba(37,99,235,.08); color:#1d4ed8; }
+
+    .mode{
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#fff;
+      overflow:hidden;
+    }
+    .mode-hd{
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(37,99,235,.04), rgba(37,99,235,0));
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .mode-title{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:160px;
+    }
+    .mode-title .t{
+      font-weight:1000;
+      letter-spacing:.2px;
+      font-size:13px;
+    }
+    .mode-title .s{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:850;
+    }
+
+    .btn{
+      border:1px solid var(--border);
+      background:#fff;
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:10px;
+      font-weight:950;
+      cursor:pointer;
+      transition: box-shadow .2s ease, border-color .2s ease, transform .05s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+      user-select:none;
+    }
+    .btn:hover{ border-color: rgba(37,99,235,.35); box-shadow:0 10px 22px rgba(37,99,235,.10); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      border-color: rgba(37,99,235,.40);
+      background: rgba(37,99,235,.08);
+      color:#1d4ed8;
+    }
+    .btn.danger{
+      border-color: rgba(239,68,68,.35);
+      background: rgba(239,68,68,.08);
+      color:#b91c1c;
+    }
+    .btn:focus{ outline:none; box-shadow: var(--focus); }
+
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background:rgba(148,163,184,.25);
+      border:1px solid rgba(148,163,184,.25);
+      overflow:hidden;
+      width:100%;
+    }
+    .bar > i{
+      display:block;
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(37,99,235,1), rgba(96,165,250,.95));
+      border-radius:999px;
+      transition: width .35s ease;
+    }
+
+    .mode-bd{ padding:10px 12px 12px; }
+    .kpi-line{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .pct{
+      font-family:var(--mono);
+      font-weight:1000;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      font-size:12px;
+      border-radius:12px;
+      overflow:hidden;
+      border:1px solid var(--border);
+    }
+    th, td{
+      padding:10px 10px;
+      border-bottom:1px solid var(--border);
+      vertical-align:top;
+    }
+    th{
+      text-align:left;
+      color:var(--muted);
+      background: rgba(15,23,42,.02);
+      font-weight:1000;
+      letter-spacing:.2px;
+    }
+    tr:last-child td{ border-bottom:none; }
+    .muted{ color:var(--muted); }
+    .field-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+
+    select, input, textarea{
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:#fff;
+      padding:0 12px;
+      height:36px;
+      font-weight:800;
+      color:var(--text);
+      outline:none;
+    }
+    select:focus, input:focus, textarea:focus{ box-shadow: var(--focus); border-color: rgba(37,99,235,.35); }
+    textarea{
+      padding:10px 12px;
+      min-height:90px;
+      resize:vertical;
+      height:auto;
+      line-height:1.6;
+    }
+    input[type="text"]{ font-weight:900; }
+
+    .issues-wrap{
+      margin-top:10px;
+    }
+    .issues-hd{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin:8px 2px 8px;
+    }
+    .issues-hd .left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:140px;
+    }
+    .issues-hd .left .t{
+      font-weight:1000;
+      letter-spacing:.2px;
+      font-size:13px;
+    }
+    .issues-hd .left .s{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:850;
+    }
+    .issues-controls{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      flex:1;
+      justify-content:flex-end;
+    }
+    .issues-controls input{ min-width:240px; width:min(360px, 100%); }
+    .issues-table-wrap{
+      max-height:260px;
+      overflow:auto;
+      border-radius:12px;
+    }
+    .link{
+      color:#1d4ed8;
+      font-weight:1000;
+      text-decoration:none;
+    }
+    .link:hover{ text-decoration:underline; }
+
+    .remark-input{
+      width:100%;
+      box-sizing:border-box;
+      padding:6px 8px;
+      height:30px;
+      font-size:12px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      background:#fff;
+    }
+    .remark-input:focus{
+      outline:none;
+      box-shadow: var(--focus);
+      border-color: rgba(37,99,235,.35);
+    }
+
+    .modal-mask{
+      position:fixed; inset:0;
+      background: rgba(2,6,23,.42);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:999;
+    }
+    .modal{
+      width:min(860px, 100%);
+      background:#fff;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow:0 30px 70px rgba(2,6,23,.35);
+      overflow:hidden;
+    }
+    .modal .mh{
+      padding:14px 16px;
+      border-bottom:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(37,99,235,.06), rgba(37,99,235,0));
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .modal .mh h3{
+      margin:0;
+      font-size:14px;
+      font-weight:1000;
+      letter-spacing:.2px;
+    }
+    .modal .mb{ padding:14px 16px 16px; }
+    .modal .mf{
+      padding:12px 16px 16px;
+      border-top:1px solid var(--border);
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      background:#fff;
+    }
+    .form-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 650px){ .form-grid{ grid-template-columns:1fr; } }
+    .hint{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.6;
+      border:1px dashed rgba(15,23,42,.18);
+      background: rgba(15,23,42,.02);
+      padding:10px 12px;
+      border-radius:12px;
+    }
+    .footer-note{
+      margin:14px 0 0;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+      font-weight:850;
+    }
+    .sr-only{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;
+      border:0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="wrap">
+      <div>
+        <p class="title">行泊车性能爬坡进度管理</p>
+        <p class="subtitle">每个车型分开管理“行车 / 泊车”测试进展与问题；当该车型行车、泊车都测完且问题全部闭环，则车型标记为完成。</p>
+      </div>
+      <div class="pill" id="lastUpdatedPill">最后更新时间：-</div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="grid-head">
+      <div>车型</div>
+      <div>行车</div>
+      <div>泊车</div>
+    </div>
+
+    <div id="modelsContainer"></div>
+
+    <div class="footer-note">提示：数据保存在浏览器本地（localStorage）。</div>
+  </div>
+
+  <!-- 模态：编辑某个模式（行车/泊车）进度 -->
+  <div class="modal-mask" id="modeModalMask">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modeModalTitle">
+      <div class="mh">
+        <h3 id="modeModalTitle">编辑进度</h3>
+        <button class="btn" type="button" id="closeModeModalBtn">关闭</button>
+      </div>
+      <div class="mb">
+        <div class="form-grid">
+          <div class="field">
+            <label class="muted" style="font-size:12px; font-weight:1000; display:block; margin-bottom:6px;">总体完成度（0-100）</label>
+            <input id="modeOverallInput" type="text" inputmode="numeric" placeholder="例如：65" />
+          </div>
+          <div class="field">
+            <label class="muted" style="font-size:12px; font-weight:1000; display:block; margin-bottom:6px;">模式状态</label>
+            <select id="modeStatusSelect">
+              <option value="InProgress">InProgress</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label class="muted" style="font-size:12px; font-weight:1000; display:block; margin-bottom:6px;">
+            里程碑进度（每行：里程碑名称,完成度0-100）
+          </label>
+          <textarea id="modeMilestonesTextarea" placeholder="例如：场景覆盖,60
+泊车成功率提升,35
+极限场景验证,10"></textarea>
+        </div>
+
+        <div class="hint">
+          规则：车型“完成”需要该车型的“行车 + 泊车”都处于 Closed 状态，且该模式下所有问题状态也都是 Closed。
+        </div>
+      </div>
+      <div class="mf">
+        <button class="btn" type="button" id="cancelModeModalBtn">取消</button>
+        <button class="btn primary" type="button" id="saveModeBtn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态：新增/编辑问题 -->
+  <div class="modal-mask" id="issueModalMask">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="issueModalTitle">
+      <div class="mh">
+        <h3 id="issueModalTitle">问题信息</h3>
+        <button class="btn" type="button" id="closeIssueModalBtn">关闭</button>
+      </div>
+      <div class="mb">
+        <div class="form-grid">
+          <div class="field" style="grid-column:1 / span 2;">
+            <label class="muted" style="font-size:12px; font-weight:1000; display:block; margin-bottom:6px;">问题标题</label>
+            <input id="issueTitleInput" type="text" placeholder="例如：狭窄垂直车位泊入时卡住" />
+          </div>
+          <div class="field">
+            <label class="muted" style="font-size:12px; font-weight:1000; display:block; margin-bottom:6px;">Owner</label>
+            <input id="issueOwnerInput" type="text" placeholder="例如：AD研发组 / 王五" />
+          </div>
+          <div class="field">
+            <label class="muted" style="font-size:12px; font-weight:1000; display:block; margin-bottom:6px;">严重度</label>
+            <select id="issueSeveritySelect">
+              <option value="S1">S1（致命）</option>
+              <option value="S2" selected>S2（高）</option>
+              <option value="S3">S3（中）</option>
+              <option value="S4">S4（低）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="muted" style="font-size:12px; font-weight:1000; display:block; margin-bottom:6px;">状态</label>
+            <select id="issueStatusSelect">
+              <option value="Open">Open</option>
+              <option value="InProgress" selected>InProgress</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="muted" style="font-size:12px; font-weight:1000; display:block; margin-bottom:6px;">关联车型</label>
+            <input id="issueModelInput" type="text" disabled />
+          </div>
+        </div>
+
+        <div class="divider" style="height:1px; background:var(--border); margin:12px 0;"></div>
+
+        <div class="form-grid">
+          <div class="field" style="grid-column: 1 / span 2;">
+            <label class="muted" style="font-size:12px; font-weight:1000; display:block; margin-bottom:6px;">
+              飞书 Defect 单 URL（可留空）
+            </label>
+            <input id="issueDefectUrlInput" type="text" placeholder="例如：https://xxx.feishu.cn/.../defects/xxxx" />
+          </div>
+          <div class="field">
+            <label class="muted" style="font-size:12px; font-weight:1000; display:block; margin-bottom:6px;">
+              或 Defect ID（可留空）
+            </label>
+            <input id="issueDefectIdInput" type="text" placeholder="例如：CA3009 / RHP2-1161" />
+          </div>
+          <div class="field">
+            <label class="muted" style="font-size:12px; font-weight:1000; display:block; margin-bottom:6px;">模式</label>
+            <input id="issueModeInput" type="text" disabled />
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label class="muted" style="font-size:12px; font-weight:1000; display:block; margin-bottom:6px;">问题描述（可选）</label>
+          <textarea id="issueDescTextarea" placeholder="补充现象、复现步骤、影响范围等（可留空）"></textarea>
+        </div>
+      </div>
+      <div class="mf">
+        <button class="btn danger" type="button" id="deleteIssueBtn" style="display:none;">删除问题</button>
+        <button class="btn" type="button" id="cancelIssueModalBtn">取消</button>
+        <button class="btn primary" type="button" id="saveIssueBtn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "parking_ramp_progress_v3_3col_v1";
+
+    // 仅当你提供 base URL 时，才可把 defectId 自动拼接成 URL。
+    // 现在先保持空（按你的要求：URL 暂时可以留空）。
+    const DEFECT_BASE_URL = "";
+
+    const defaultData = {
+      lastUpdatedAt: Date.now(),
+      models: [
+        { id:"m_a", name:"A", owner:"", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
+        { id:"m_a_suv", name:"A SUV", owner:"", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
+        { id:"m_magotan", name:"Magotan", owner:"GTE49",
+          driving:{overall:0, status:"InProgress", milestones:[]},
+          parking:{overall:84, status:"InProgress", milestones:[
+            { name:"用例覆盖率", progress:84 },
+            { name:"检测成功率", progress:100 },
+            { name:"泊入成功率", progress:92 },
+            { name:"泊出成功率", progress:100 }
+          ]}},
+        { id:"m_tayron", name:"Tayron", owner:"TY50",
+          driving:{overall:0, status:"InProgress", milestones:[]},
+          parking:{overall:73, status:"InProgress", milestones:[
+            { name:"用例覆盖率", progress:100 },
+            { name:"检测成功率", progress:96 },
+            { name:"泊入成功率", progress:73 },
+            { name:"泊出成功率", progress:92 }
+          ]}},
+        { id:"m_tiguan", name:"Tiguan", owner:"TG44",
+          driving:{overall:0, status:"InProgress", milestones:[]},
+          parking:{overall:0, status:"InProgress", milestones:[]} },
+        { id:"m_tavendor", name:"Tavendor", owner:"LX46",
+          driving:{overall:0, status:"InProgress", milestones:[]},
+          parking:{overall:0, status:"InProgress", milestones:[]} },
+        { id:"m_sagitar_st", name:"Sagitar", owner:"ST（深圳无车，长春客户现场完成）",
+          driving:{overall:0, status:"InProgress", milestones:[]},
+          parking:{overall:0, status:"InProgress", milestones:[]} },
+        { id:"m_talagon", name:"Talagon", owner:"LJ（深圳无车，合肥客户现场完成）",
+          driving:{overall:0, status:"InProgress", milestones:[]},
+          parking:{overall:100, status:"Closed", milestones:[]} },
+        { id:"m_passat", name:"Passat", owner:"PST45",
+          driving:{overall:0, status:"InProgress", milestones:[]},
+          parking:{overall:0, status:"InProgress", milestones:[]} },
+        { id:"m_teramont_tr47", name:"Teramont（CL高功率）", owner:"TR47",
+          driving:{overall:0, status:"InProgress", milestones:[]},
+          parking:{overall:0, status:"InProgress", milestones:[]} },
+        { id:"m_teramont_tr_cl_low", name:"Teramont（CL低功率）", owner:"TR（深圳无车，上海客户现场完成）",
+          driving:{overall:0, status:"InProgress", milestones:[]},
+          parking:{overall:100, status:"Closed", milestones:[]} },
+        { id:"m_teramont_tr48_rl", name:"Teramont（RL）", owner:"TR48",
+          driving:{overall:0, status:"InProgress", milestones:[]},
+          parking:{overall:58, status:"InProgress", milestones:[
+            { name:"用例覆盖率", progress:63 },
+            { name:"检测成功率", progress:79 },
+            { name:"泊入成功率", progress:58 },
+            { name:"泊出成功率", progress:49 }
+          ]}},
+        { id:"m_sagitar_st_hev", name:"Sagitar ST HEV", owner:"ST HEV",
+          driving:{overall:0, status:"InProgress", milestones:[]},
+          parking:{overall:0, status:"InProgress", milestones:[]} },
+      ],
+      issues: []
+    };
+
+    function uid(prefix){
+      return prefix + "_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+    }
+
+    function safeText(s){
+      return (s ?? "").toString().replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    }
+
+    function loadData(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return structuredClone(defaultData);
+        const parsed = JSON.parse(raw);
+        return parsed || structuredClone(defaultData);
+      }catch{
+        return structuredClone(defaultData);
+      }
+    }
+
+    let state = loadData();
+
+    function saveData(){
+      state.lastUpdatedAt = Date.now();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll();
+    }
+
+    function formatDate(ts){
+      if(!ts) return "-";
+      const d = new Date(ts);
+      const pad = (n)=>String(n).padStart(2,"0");
+      return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    }
+
+    function statusBadge(status){
+      if(status === "Closed") return `<span class="badge green">Closed</span>`;
+      if(status === "InProgress") return `<span class="badge yellow">InProgress</span>`;
+      if(status === "Open") return `<span class="badge gray">Open</span>`;
+      return `<span class="badge">${status}</span>`;
+    }
+
+    function severityBadge(sev){
+      if(sev === "S1") return `<span class="badge red">S1</span>`;
+      if(sev === "S2") return `<span class="badge yellow">S2</span>`;
+      if(sev === "S3") return `<span class="badge primary">S3</span>`;
+      if(sev === "S4") return `<span class="badge gray">S4</span>`;
+      return `<span class="badge">${sev}</span>`;
+    }
+
+    function clamp0_100(n){
+      const v = Number(n);
+      if(!Number.isFinite(v)) return 0;
+      return Math.max(0, Math.min(100, v));
+    }
+
+    function progressColor(overall, status){
+      const w = clamp0_100(overall);
+      if(status === "Closed") return "linear-gradient(90deg, rgba(22,163,74,1), rgba(34,197,94,.95))";
+      if(w >= 80) return "linear-gradient(90deg, rgba(22,163,74,1), rgba(96,165,250,.95))";
+      if(w >= 40) return "linear-gradient(90deg, rgba(245,158,11,1), rgba(96,165,250,.95))";
+      return "linear-gradient(90deg, rgba(239,68,68,1), rgba(245,158,11,.95))";
+    }
+
+    function milestonesText(milestones){
+      if(!Array.isArray(milestones) || milestones.length===0) return "";
+      return milestones.map(x=>`${x.name},${x.progress}`).join("\n");
+    }
+
+    function normalizeMilestones(text){
+      const lines = (text || "").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+      const out = [];
+      for(const line of lines){
+        const parts = line.split(",");
+        if(parts.length < 2) continue;
+        const name = parts[0].trim();
+        const p = clamp0_100(parts.slice(1).join(",").trim());
+        if(!name) continue;
+        out.push({ name, progress:p });
+      }
+      return out;
+    }
+
+    function defectLink(issue){
+      const url = (issue.defectUrl || "").trim();
+      if(url) return url;
+      const base = (DEFECT_BASE_URL || "").trim();
+      if(base && issue.defectId){
+        const id = issue.defectId.trim();
+        if(base.endsWith("/")) return base + id;
+        return base + "/" + id;
+      }
+      return "";
+    }
+
+    function getIssuesFor(modelId, mode){
+      return (state.issues || []).filter(i=>i.modelId===modelId && i.mode===mode);
+    }
+
+    function modelComplete(model){
+      const issuesDriving = getIssuesFor(model.id, "driving");
+      const issuesParking = getIssuesFor(model.id, "parking");
+
+      const drivingOk = model.driving.status === "Closed" && issuesDriving.every(i=>i.status==="Closed");
+      const parkingOk = model.parking.status === "Closed" && issuesParking.every(i=>i.status==="Closed");
+      return drivingOk && parkingOk;
+    }
+
+    function modelCompletionBadge(model){
+      return modelComplete(model)
+        ? `<span class="badge green">车型完成</span>`
+        : `<span class="badge yellow">待完成</span>`;
+    }
+
+    function issueMatches(issue, q){
+      const t = (q||"").trim().toLowerCase();
+      if(!t) return true;
+      const link = defectLink(issue);
+      const hay = `${issue.title||""} ${issue.owner||""} ${issue.modelName||""} ${issue.mode||""} ${link||""} ${issue.defectId||""} ${issue.desc||""}`.toLowerCase();
+      return hay.includes(t);
+    }
+
+    // DOM
+    const lastUpdatedPill = document.getElementById("lastUpdatedPill");
+    const modelsContainer = document.getElementById("modelsContainer");
+
+    // Mode modal
+    const modeModalMask = document.getElementById("modeModalMask");
+    const modeModalTitle = document.getElementById("modeModalTitle");
+    const closeModeModalBtn = document.getElementById("closeModeModalBtn");
+    const cancelModeModalBtn = document.getElementById("cancelModeModalBtn");
+    const saveModeBtn = document.getElementById("saveModeBtn");
+    const modeOverallInput = document.getElementById("modeOverallInput");
+    const modeStatusSelect = document.getElementById("modeStatusSelect");
+    const modeMilestonesTextarea = document.getElementById("modeMilestonesTextarea");
+    let modeModalCtx = { modelId:null, mode:null };
+
+    // Issue modal
+    const issueModalMask = document.getElementById("issueModalMask");
+    const issueModalTitle = document.getElementById("issueModalTitle");
+    const closeIssueModalBtn = document.getElementById("closeIssueModalBtn");
+    const cancelIssueModalBtn = document.getElementById("cancelIssueModalBtn");
+    const saveIssueBtn = document.getElementById("saveIssueBtn");
+    const deleteIssueBtn = document.getElementById("deleteIssueBtn");
+
+    const issueTitleInput = document.getElementById("issueTitleInput");
+    const issueOwnerInput = document.getElementById("issueOwnerInput");
+    const issueSeveritySelect = document.getElementById("issueSeveritySelect");
+    const issueStatusSelect = document.getElementById("issueStatusSelect");
+    const issueDefectUrlInput = document.getElementById("issueDefectUrlInput");
+    const issueDefectIdInput = document.getElementById("issueDefectIdInput");
+    const issueModelInput = document.getElementById("issueModelInput");
+    const issueModeInput = document.getElementById("issueModeInput");
+    const issueDescTextarea = document.getElementById("issueDescTextarea");
+
+    let issueModalCtx = { issueId:null, modelId:null, mode:null };
+
+    function showModal(mask){ mask.style.display = "flex"; }
+    function hideModal(mask){ mask.style.display = "none"; }
+    closeModeModalBtn.addEventListener("click", ()=>hideModal(modeModalMask));
+    cancelModeModalBtn.addEventListener("click", ()=>hideModal(modeModalMask));
+    modeModalMask.addEventListener("click", (e)=>{ if(e.target===modeModalMask) hideModal(modeModalMask); });
+    closeIssueModalBtn.addEventListener("click", ()=>hideModal(issueModalMask));
+    cancelIssueModalBtn.addEventListener("click", ()=>hideModal(issueModalMask));
+    issueModalMask.addEventListener("click", (e)=>{ if(e.target===issueModalMask) hideModal(issueModalMask); });
+
+    function openModeEditor(modelId, mode){
+      const model = state.models.find(m=>m.id===modelId);
+      if(!model) return;
+      modeModalCtx = { modelId, mode };
+      const ms = model[mode];
+
+      modeModalTitle.textContent = `编辑 ${mode==="driving"?"行车":"泊车"}进度（${model.name}）`;
+      modeOverallInput.value = String(ms.overall ?? 0);
+      modeStatusSelect.value = ms.status || "InProgress";
+      modeMilestonesTextarea.value = milestonesText(ms.milestones || []);
+
+      hideIssueModalIfOpen();
+      showModal(modeModalMask);
+    }
+
+    function hideIssueModalIfOpen(){
+      if(issueModalMask.style.display==="flex") hideModal(issueModalMask);
+    }
+
+    saveModeBtn.addEventListener("click", ()=>{
+      const { modelId, mode } = modeModalCtx;
+      if(!modelId || !mode) return;
+      const model = state.models.find(m=>m.id===modelId);
+      if(!model) return;
+      const overall = clamp0_100(modeOverallInput.value);
+      const status = modeStatusSelect.value;
+      const milestones = normalizeMilestones(modeMilestonesTextarea.value);
+
+      model[mode] = { overall, status, milestones };
+      saveData();
+      hideModal(modeModalMask);
+    });
+
+    function openAddIssue(modelId, mode){
+      const model = state.models.find(m=>m.id===modelId);
+      if(!model) return;
+      issueModalCtx = { issueId:null, modelId, mode };
+      issueModalTitle.textContent = `新增问题（${mode==="driving"?"行车":"泊车"} - ${model.name}）`;
+
+      issueTitleInput.value = "";
+      issueOwnerInput.value = model.owner || "";
+      issueSeveritySelect.value = "S2";
+      issueStatusSelect.value = "InProgress";
+      issueDefectUrlInput.value = "";
+      issueDefectIdInput.value = "";
+      issueDescTextarea.value = "";
+      issueModelInput.value = model.name;
+      issueModeInput.value = (mode==="driving"?"行车":"泊车");
+      deleteIssueBtn.style.display = "none";
+      showModal(issueModalMask);
+    }
+
+    function openEditIssue(issue){
+      issueModalCtx = { issueId:issue.id, modelId:issue.modelId, mode:issue.mode };
+      const model = state.models.find(m=>m.id===issue.modelId);
+      const modeLabel = issue.mode==="driving"?"行车":"泊车";
+      issueModalTitle.textContent = `编辑问题（${modeLabel} - ${model?model.name:issue.modelId}）`;
+
+      issueTitleInput.value = issue.title || "";
+      issueOwnerInput.value = issue.owner || "";
+      issueSeveritySelect.value = issue.severity || "S2";
+      issueStatusSelect.value = issue.status || "InProgress";
+      issueDefectUrlInput.value = issue.defectUrl || "";
+      issueDefectIdInput.value = issue.defectId || "";
+      issueDescTextarea.value = issue.desc || "";
+      issueModelInput.value = model?model.name:(issue.modelName||"");
+      issueModeInput.value = modeLabel;
+      deleteIssueBtn.style.display = "inline-flex";
+
+      showModal(issueModalMask);
+    }
+
+    saveIssueBtn.addEventListener("click", ()=>{
+      const { issueId, modelId, mode } = issueModalCtx;
+      if(!modelId || !mode) return;
+      const model = state.models.find(m=>m.id===modelId);
+      if(!model) return;
+
+      const title = issueTitleInput.value.trim();
+      if(!title){ alert("请填写问题标题"); return; }
+
+      const owner = issueOwnerInput.value.trim();
+      const severity = issueSeveritySelect.value;
+      const status = issueStatusSelect.value;
+      const defectUrl = issueDefectUrlInput.value.trim();
+      const defectId = issueDefectIdInput.value.trim();
+      const desc = issueDescTextarea.value.trim();
+
+      const now = Date.now();
+
+      if(issueId){
+        const issue = state.issues.find(i=>i.id===issueId);
+        if(!issue) return;
+        issue.title = title;
+        issue.owner = owner;
+        issue.severity = severity;
+        issue.status = status;
+        issue.defectUrl = defectUrl;
+        issue.defectId = defectId;
+        issue.desc = desc;
+        issue.updatedAt = now;
+      }else{
+        const newIssue = {
+          id: uid("i"),
+          modelId,
+          modelName: model.name,
+          mode,
+          title,
+          owner,
+          severity,
+          status,
+          defectUrl,
+          defectId,
+          desc,
+          createdAt: now,
+          updatedAt: now
+        };
+        state.issues.unshift(newIssue);
+      }
+
+      saveData();
+      hideModal(issueModalMask);
+    });
+
+    deleteIssueBtn.addEventListener("click", ()=>{
+      const { issueId } = issueModalCtx;
+      if(!issueId) return;
+      const ok = confirm("确定删除该问题？（本地数据）");
+      if(!ok) return;
+      state.issues = state.issues.filter(i=>i.id!==issueId);
+      saveData();
+      hideModal(issueModalMask);
+    });
+
+    function renderMilestonesTable(milestones){
+      const list = (milestones||[]).slice(0,12);
+      if(list.length===0){
+        return `<tr><td class="muted">暂无里程碑（在“编辑进度”中补充）。</td></tr>`;
+      }
+      return list.map(x=>{
+        const p = clamp0_100(x.progress);
+        const st = p>=80 ? `<span class="badge green" style="padding:4px 8px;border-radius:999px;">OK</span>` :
+                   p>=40 ? `<span class="badge yellow" style="padding:4px 8px;border-radius:999px;">进行中</span>` :
+                          `<span class="badge red" style="padding:4px 8px;border-radius:999px;">待推进</span>`;
+        return `<tr>
+          <td>${safeText(x.name||"-")}</td>
+          <td style="width:120px;">${p}%</td>
+          <td style="width:130px;">${st}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function renderIssuesTable(model, mode){
+      // 搜索仅过滤当前模式
+      const searchInput = document.getElementById(`issueSearch_${model.id}_${mode}`);
+      const q = searchInput ? searchInput.value : "";
+      let issues = getIssuesFor(model.id, mode).slice();
+      // newest first
+      issues.sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0));
+      issues = issues.filter(i=>issueMatches(i, q));
+
+      if(issues.length===0){
+        return `<div class="issues-table-wrap"><table>
+          <thead>
+            <tr>
+              <th style="width:70%;">问题</th>
+              <th style="width:15%;">严重度</th>
+              <th style="width:15%;">状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="3" class="muted">暂无问题。</td></tr>
+          </tbody>
+        </table></div>`;
+      }
+
+      return `<div class="issues-table-wrap"><table>
+        <thead>
+          <tr>
+            <th style="width:48%;">问题</th>
+            <th style="width:14%;">严重度</th>
+            <th style="width:14%;">状态</th>
+            <th style="width:14%;">备注</th>
+            <th style="width:10%;">责任人</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${issues.map(it=>{
+            const link = defectLink(it);
+            const title = link
+              ? `<a class="link" href="${safeText(link)}" target="_blank" rel="noopener">[Defect] ${safeText(it.title||"-")}</a>`
+              : `${safeText(it.title||"-")}`;
+            const updated = it.updatedAt || it.createdAt;
+            const meta = safeText(it.defectId||"") || ("更新时间：" + formatDate(updated));
+            const remark = safeText(it.remark || "");
+            return `<tr data-issue-id="${it.id}" data-action="editIssue" style="cursor:pointer;">
+              <td>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div>${title}</div>
+                  <div class="muted" style="font-size:11px; font-weight:850;">${meta}</div>
+                </div>
+              </td>
+              <td>${severityBadge(it.severity||"S2")}</td>
+              <td>${statusBadge(it.status || "Open")}</td>
+              <td>
+                <input
+                  class="remark-input"
+                  type="text"
+                  data-issue-remark="${it.id}"
+                  value="${remark}"
+                  placeholder="请输入备注"
+                  onclick="event.stopPropagation();"
+                  onkeydown="event.stopPropagation();"
+                />
+              </td>
+              <td><span class="badge gray" style="padding:4px 6px;border-radius:999px;">${safeText(it.owner || "-")}</span></td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table></div>`;
+    }
+
+    function renderMode(model, mode){
+      const ms = model[mode];
+      const overall = clamp0_100(ms.overall ?? 0);
+      const st = ms.status || "InProgress";
+      const barColor = progressColor(overall, st);
+      const issues = getIssuesFor(model.id, mode);
+      const openCount = issues.filter(i=>i.status!=="Closed").length;
+
+      const modeLabel = mode==="driving"?"行车":"泊车";
+      const issuesTitle = `问题列表（${modeLabel}）`;
+      const searchId = `issueSearch_${model.id}_${mode}`;
+
+      return `
+        <div class="mode">
+          <div class="mode-hd">
+            <div class="mode-title">
+              <div class="t">${modeLabel}</div>
+              <div class="s">总体完成度：${overall}%</div>
+            </div>
+            <div class="row-actions" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <span>${statusBadge(st)}</span>
+              <select class="modeStatusSelect" data-model-id="${model.id}" data-mode="${mode}" aria-label="更改模式状态">
+                <option value="InProgress" ${st==="InProgress"?"selected":""}>InProgress</option>
+                <option value="Closed" ${st==="Closed"?"selected":""}>Closed</option>
+              </select>
+              <button class="btn primary" type="button" data-action="editMode" data-model-id="${model.id}" data-mode="${mode}">编辑进度</button>
+            </div>
+          </div>
+          <div class="mode-bd">
+            <div class="kpi-line">
+              <div class="pct">完成度：${overall}%</div>
+              <div class="pct">未闭环问题：${openCount}</div>
+            </div>
+            <div class="bar" aria-label="${modeLabel}总体进度">
+              <i style="width:${overall}%; background:${barColor};"></i>
+            </div>
+
+            <div style="margin-top:12px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:55%;">里程碑</th>
+                    <th style="width:15%;">完成度</th>
+                    <th style="width:30%;">状态</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${renderMilestonesTable(ms.milestones || [])}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="issues-wrap">
+              <div class="issues-hd">
+                <div class="left">
+                  <div class="t">${issuesTitle}</div>
+                  <div class="s">问题总数：${issues.length}（未闭环：${openCount}）</div>
+                </div>
+                <div class="issues-controls">
+                  <input id="${searchId}" type="text" placeholder="搜索：标题/Owner/Defect链接/DefectID" />
+                  <button class="btn primary" type="button" data-action="addIssue" data-model-id="${model.id}" data-mode="${mode}">+ 新增问题</button>
+                </div>
+              </div>
+              <div class="issues-slot" data-model-id="${model.id}" data-mode="${mode}">
+                ${renderIssuesTable(model, mode)}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderModel(model){
+      const completeBadge = modelCompletionBadge(model);
+      const cardClass =
+        modelComplete(model)
+          ? "model-card done"
+          : ((model.driving.status==="Closed" || model.parking.status==="Closed" || model.driving.overall>0 || model.parking.overall>0)
+              ? "model-card partial"
+              : "model-card todo");
+      return `
+        <div class="${cardClass}">
+          <div class="model-row">
+            <div class="mcol-1">
+              <div class="mname">${safeText(model.name)}</div>
+              <div class="mmeta">
+                <div>Owner：${safeText(model.owner||"-")}</div>
+                <div style="margin-top:10px;">${completeBadge}</div>
+              </div>
+            </div>
+            <div>${renderMode(model, "driving")}</div>
+            <div>${renderMode(model, "parking")}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAll(){
+      lastUpdatedPill.textContent = `最后更新时间：${formatDate(state.lastUpdatedAt)}`;
+      modelsContainer.innerHTML = "";
+      const list = (state.models||[]).slice();
+      // 简单按泊车总体优先
+      list.sort((a,b)=> (b.parking?.overall??0)-(a.parking?.overall??0));
+      modelsContainer.innerHTML = list.map(renderModel).join("");
+
+      // 绑定事件：模式状态、编辑模式、搜索、添加/编辑问题、问题状态下拉
+      // 用一次性遍历减少重复绑定
+      modelsContainer.querySelectorAll("[data-action='editMode']").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const modelId = btn.getAttribute("data-model-id");
+          const mode = btn.getAttribute("data-mode");
+          openModeEditor(modelId, mode);
+        });
+      });
+      modelsContainer.querySelectorAll("[data-action='addIssue']").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const modelId = btn.getAttribute("data-model-id");
+          const mode = btn.getAttribute("data-mode");
+          openAddIssue(modelId, mode);
+        });
+      });
+      modelsContainer.querySelectorAll(".modeStatusSelect").forEach(sel=>{
+        sel.addEventListener("change", ()=>{
+          const modelId = sel.getAttribute("data-model-id");
+          const mode = sel.getAttribute("data-mode");
+          const model = state.models.find(m=>m.id===modelId);
+          if(!model) return;
+          model[mode].status = sel.value;
+          saveData();
+        });
+      });
+
+      // issue 状态切换（直接更新）
+      modelsContainer.querySelectorAll("select[data-issue-status]").forEach(sel=>{
+        sel.addEventListener("change", ()=>{
+          const issueId = sel.getAttribute("data-issue-status");
+          const issue = state.issues.find(i=>i.id===issueId);
+          if(!issue) return;
+          issue.status = sel.value;
+          issue.updatedAt = Date.now();
+          saveData();
+        });
+      });
+
+      modelsContainer.querySelectorAll("[data-action='editIssue']").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const issueId = btn.getAttribute("data-issue-id");
+          const issue = state.issues.find(i=>i.id===issueId);
+          if(!issue) return;
+          openEditIssue(issue);
+        });
+      });
+
+      function bindIssueEvents(rootEl){
+        if(!rootEl) return;
+        rootEl.querySelectorAll("[data-action='editIssue']").forEach(tr=>{
+          tr.addEventListener("click", ()=>{
+            const issueId = tr.getAttribute("data-issue-id");
+            const issue = state.issues.find(i=>i.id===issueId);
+            if(!issue) return;
+            openEditIssue(issue);
+          });
+        });
+        rootEl.querySelectorAll("input[data-issue-remark]").forEach(input=>{
+          const handler = ()=>{
+            const issueId = input.getAttribute("data-issue-remark");
+            const issue = state.issues.find(i=>i.id===issueId);
+            if(!issue) return;
+            issue.remark = input.value.trim();
+            issue.updatedAt = Date.now();
+            saveData();
+          };
+          input.addEventListener("change", handler);
+          input.addEventListener("blur", handler);
+        });
+      }
+
+      // 搜索：仅重渲染当前模式的 issues
+      modelsContainer.querySelectorAll("input[id^='issueSearch_']").forEach(input=>{
+        input.addEventListener("input", ()=>{
+          // issueSearch_{modelId}_{mode}，其中 modelId 可能包含 '_'，所以用最后一个 '_' 拆分
+          const prefix = "issueSearch_";
+          const rest = input.id.slice(prefix.length);
+          const lastUnderscore = rest.lastIndexOf("_");
+          if(lastUnderscore < 0) return;
+          const modelId = rest.slice(0, lastUnderscore);
+          const mode = rest.slice(lastUnderscore + 1);
+          const model = state.models.find(m=>m.id===modelId);
+          if(!model) return;
+          // 直接替换 issues-slot 内部
+          const slot = modelsContainer.querySelector(`.issues-slot[data-model-id="${modelId}"][data-mode="${mode}"]`);
+          if(!slot) return;
+          slot.innerHTML = renderIssuesTable(model, mode);
+          // 局部重渲染后，需要重新绑定事件
+          bindIssueEvents(slot);
+        });
+      });
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
+
