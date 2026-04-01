@@ -580,82 +580,70 @@
 
   <script>
     // ===================== 飞书配置（你只需要填这里）=====================
-    const FEISHU_CONFIG = {
-      appId: "cli_a9397c69f33a5cca",
-      appSecret: "nGt1t9TZV5nwoFrbal85YcjgW0wIUVUo", // 👈 在这里填入你的 AppSecret
-      appToken: "D9dvwYzgAi4fdkkBIeKcxql1nud",
-      tableId: "tblR4CCpprVqP0zO"
-    };
-    let feishuToken = "";
+const FEISHU_INFO = {
+  appId: "cli_a9397c69f33a5cca",
+  appToken: "D9dvwYzgAi4fdkkBIeKcxql1nud",
+  tableId: "tblR4CCpprVqP0zO"
+};
 
-    // 获取飞书凭证
-    async function getFeishuToken() {
-      if (!FEISHU_CONFIG.appSecret) return false;
-      try {
-        const r = await fetch("https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            app_id: FEISHU_CONFIG.appId,
-            app_secret: FEISHU_CONFIG.appSecret
-          })
-        });
-        const j = await r.json();
-        if (j.code === 0) feishuToken = j.tenant_access_token;
-        return j.code === 0;
-      } catch (e) { return false; }
-    }
+function getSecret() {
+  let s = localStorage.getItem("FS_SECRET");
+  if (!s) {
+    s = prompt("请输入飞书 AppSecret 以启用同步：");
+    if (s) localStorage.setItem("FS_SECRET", s);
+  }
+  return s;
+}
 
-    // 提交问题到飞书表格
-    async function syncIssueToFeishu(issue) {
-      if (!await getFeishuToken()) return;
-      try {
-        await fetch(`https://open.feishu.cn/open-apis/bitable/v1/apps/${FEISHU_CONFIG.appToken}/tables/${FEISHU_CONFIG.tableId}/records`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${feishuToken}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            fields: {
-              "车型": issue.modelName || "",
-              "模式": issue.mode === "driving" ? "行车" : "泊车",
-              "问题标题": issue.title || "",
-              "Owner": issue.owner || "",
-              "严重度": issue.severity || "",
-              "状态": issue.status || "",
-              "DefectURL": issue.defectUrl || "",
-              "DefectID": issue.defectId || "",
-              "问题描述": issue.desc || "",
-              "提交时间": new Date().toISOString()
-            }
-          })
-        });
-      } catch (e) {}
-    }
-    // ======================================================================
+async function syncToFeishu(issue) {
+  const secret = getSecret();
+  if (!secret) return;
 
-    const STORAGE_KEY = "parking_ramp_progress_v3_3col_v1";
-    const DEFECT_BASE_URL = "";
-    const defaultData = {
-      lastUpdatedAt: Date.now(),
-      models: [
-        { id:"m_a", name:"A", owner:"", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
-        { id:"m_a_suv", name:"A SUV", owner:"", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
-        { id:"m_magotan", name:"Magotan", owner:"GTE49", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:84, status:"InProgress", milestones:[{ name:"用例覆盖率", progress:84 },{ name:"检测成功率", progress:100 },{ name:"泊入成功率", progress:92 },{ name:"泊出成功率", progress:100 }]} },
-        { id:"m_tayron", name:"Tayron", owner:"TY50", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:73, status:"InProgress", milestones:[{ name:"用例覆盖率", progress:100 },{ name:"检测成功率", progress:96 },{ name:"泊入成功率", progress:73 },{ name:"泊出成功率", progress:92 }]} },
-        { id:"m_tiguan", name:"Tiguan", owner:"TG44", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
-        { id:"m_tavendor", name:"Tavendor", owner:"LX46", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
-        { id:"m_sagitar_st", name:"Sagitar", owner:"ST（深圳无车，长春客户现场完成）", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
-        { id:"m_talagon", name:"Talagon", owner:"LJ（深圳无车，合肥客户现场完成）", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:100, status:"Closed", milestones:[]} },
-        { id:"m_passat", name:"Passat", owner:"PST45", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
-        { id:"m_teramont_tr47", name:"Teramont（CL高功率）", owner:"TR47", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
-        { id:"m_teramont_tr_cl_low", name:"Teramont（CL低功率）", owner:"TR（深圳无车，上海客户现场完成）", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:100, status:"Closed", milestones:[]} },
-        { id:"m_teramont_tr48_rl", name:"Teramont（RL）", owner:"TR48", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:58, status:"InProgress", milestones:[{ name:"用例覆盖率", progress:63 },{ name:"检测成功率", progress:79 },{ name:"泊入成功率", progress:58 },{ name:"泊出成功率", progress:49 }]} },
-        { id:"m_sagitar_st_hev", name:"Sagitar ST HEV", owner:"ST HEV", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
-      ],
-      issues: []
-    };
+  try {
+    let t = await fetch("https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ app_id: FEISHU_INFO.appId, app_secret: secret })
+    });
+    t = await t.json();
+    if (t.code !== 0) return;
+
+    await fetch(`https://open.feishu.cn/open-apis/bitable/v1/apps/${FEISHU_INFO.appToken}/tables/${FEISHU_INFO.tableId}/records`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${t.tenant_access_token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ fields: {
+        "车型": issue.modelName, "模式": issue.mode === "driving" ? "行车" : "泊车",
+        "问题标题": issue.title, "Owner": issue.owner, "严重度": issue.severity,
+        "状态": issue.status, "DefectURL": issue.defectUrl, "DefectID": issue.defectId,
+        "问题描述": issue.desc
+      }})
+    });
+  } catch (e) {}
+}
+// ========================================================================
+
+// ====================== 你原来的所有代码，完全不动 ======================
+const STORAGE_KEY = "parking_ramp_progress_v3_3col_v1";
+const DEFECT_BASE_URL = "";
+const defaultData = {
+  lastUpdatedAt: Date.now(),
+  models: [
+    { id:"m_a", name:"A", owner:"", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
+    { id:"m_a_suv", name:"A SUV", owner:"", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
+    { id:"m_magotan", name:"Magotan", owner:"GTE49", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:84, status:"InProgress", milestones:[{ name:"用例覆盖率", progress:84 },{ name:"检测成功率", progress:100 },{ name:"泊入成功率", progress:92 },{ name:"泊出成功率", progress:100 }]} },
+    { id:"m_tayron", name:"Tayron", owner:"TY50", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:73, status:"InProgress", milestones:[{ name:"用例覆盖率", progress:100 },{ name:"检测成功率", progress:96 },{ name:"泊入成功率", progress:73 },{ name:"泊出成功率", progress:92 }]} },
+    { id:"m_tiguan", name:"Tiguan", owner:"TG44", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
+    { id:"m_tavendor", name:"Tavendor", owner:"LX46", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
+    { id:"m_sagitar_st", name:"Sagitar", owner:"ST（深圳无车，长春客户现场完成）", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
+    { id:"m_talagon", name:"Talagon", owner:"LJ（深圳无车，合肥客户现场完成）", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:100, status:"Closed", milestones:[]} },
+    { id:"m_passat", name:"Passat", owner:"PST45", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
+    { id:"m_teramont_tr47", name:"Teramont（CL高功率）", owner:"TR47", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
+    { id:"m_teramont_tr_cl_low", name:"Teramont（CL低功率）", owner:"TR（深圳无车，上海客户现场完成）", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:100, status:"Closed", milestones:[]} },
+    { id:"m_teramont_tr48_rl", name:"Teramont（RL）", owner:"TR48", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:58, status:"InProgress", milestones:[{ name:"用例覆盖率", progress:63 },{ name:"检测成功率", progress:79 },{ name:"泊入成功率", progress:58 },{ name:"泊出成功率", progress:49 }]} },
+    { id:"m_sagitar_st_hev", name:"Sagitar ST HEV", owner:"ST HEV", driving:{overall:0, status:"InProgress", milestones:[]}, parking:{overall:0, status:"InProgress", milestones:[]} },
+  ],
+  issues: []
+};
 
     function uid(prefix){ return prefix + "_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16); }
     function safeText(s){ return (s ?? "").toString().replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
