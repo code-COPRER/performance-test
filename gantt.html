@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>测试计划甘特图</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  background: #b8bcc8;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #1a1a2e;
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  flex-shrink: 0;
+  background: #2c2f3f;
+  padding: 9px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  z-index: 200;
+}
+.toolbar-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.toolbar-title:hover { background: rgba(255,255,255,.1); }
+.toolbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,.2); margin: 0 2px; }
+.toolbar-label { font-size: 12px; color: #aaa; white-space: nowrap; }
+.toolbar-input {
+  border: 1.5px solid rgba(255,255,255,.2);
+  border-radius: 7px;
+  padding: 5px 9px;
+  font-size: 13px;
+  color: #fff;
+  background: rgba(255,255,255,.1);
+  outline: none;
+  transition: border-color .15s;
+  font-family: inherit;
+}
+.toolbar-input::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .6; }
+.toolbar-input:focus { border-color: #6a9cf8; background: rgba(255,255,255,.15); }
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 15px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+  transition: all .15s; white-space: nowrap;
+}
+.btn-primary { background: #4a7cf8; color: #fff; }
+.btn-primary:hover { background: #3a6ae0; }
+.btn-outline { background: rgba(255,255,255,.12); color: #dde; border: 1.5px solid rgba(255,255,255,.2); }
+.btn-outline:hover { background: rgba(255,255,255,.2); }
+.btn-danger { background: #fff0ef; color: #d93025; border: 1.5px solid #f5c0bc; }
+.btn-danger:hover { background: #ffd9d7; }
+
+/* ── Center Stage (gray outer) ── */
+.center-stage {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 28px 32px 40px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* ── Gantt Canvas (white document) ── */
+.gantt-canvas {
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 12px 48px rgba(0,0,0,.28), 0 2px 8px rgba(0,0,0,.12);
+  overflow: auto;
+}
+
+/* ── Gantt Inner ── */
+.gantt-inner {
+  display: flex;
+  flex-direction: column;
+  min-width: fit-content;
+  position: relative;
+}
+
+/* ── Title Banner ── */
+.gantt-title-banner {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  height: 58px;
+  flex-shrink: 0;
+  gap: 14px;
+}
+.gantt-title-text {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: background .15s;
+  text-align: center;
+}
+.gantt-title-text:hover { background: rgba(255,255,255,.12); }
+.gantt-title-sub {
+  position: absolute;
+  right: 20px;
+  font-size: 12px;
+  opacity: .75;
+  background: rgba(255,255,255,.15);
+  border-radius: 20px;
+  padding: 3px 12px;
+}
+.granularity-badge {
+  position: absolute;
+  left: 20px;
+  font-size: 11px;
+  opacity: .8;
+  background: rgba(255,255,255,.15);
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-weight: 600;
+}
+
+/* ── Gantt Header ── */
+.gantt-header {
+  display: flex;
+  position: sticky;
+  z-index: 20;
+  background: #fff;
+  border-bottom: 2px solid #dde0ec;
+}
+.gantt-corner {
+  position: sticky;
+  left: 0;
+  z-index: 30;
+  background: linear-gradient(160deg, #f0f3ff, #e6eaff);
+  border-right: 2px solid #dde0ec;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 16px 10px;
+  font-weight: 800;
+  color: #4a5080;
+  font-size: 13px;
+  letter-spacing: .5px;
+  flex-shrink: 0;
+}
+
+/* ── Timeline ── */
+.gantt-timeline { overflow: visible; }
+.h-groups { display: flex; }
+.h-group-cell {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #3a4080;
+  border-right: 2px dashed #c8cde8;
+  overflow: visible; white-space: nowrap;
+  padding: 0 4px; min-width: 0; flex-shrink: 0;
+}
+.h-group-cell:nth-child(odd)  { background: #eef1ff; }
+.h-group-cell:nth-child(even) { background: #e8f4fd; }
+
+.h-cols { display: flex; background: #f7f8fc; border-bottom: 1px solid #e4e7f5; }
+.h-col-cell {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: #7a7ea8; border-right: 1px solid #eaecf8;
+  font-weight: 600; flex-shrink: 0; overflow: visible; white-space: nowrap;
+}
+.h-col-cell.weekend   { background: #f5f0ff; color: #9988cc; }
+.h-col-cell.today-col { background: #fff0f0; color: #d93025; font-weight: 800; font-size: 13px; }
+
+/* ── Milestone Row ── */
+.h-milestones {
+  position: relative;
+  background: linear-gradient(90deg, #fffbe8, #fff8f0 50%, #f0f8ff);
+  border-bottom: 1px solid #e8e0cc;
+  cursor: pointer;
+}
+.h-mile-label {
+  position: sticky; left: 0; z-index: 5;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0 14px; height: 100%;
+  font-size: 12px; font-weight: 700; color: #8a6800;
+  background: linear-gradient(90deg, #fff8dc, #fffbe8);
+  border-right: 1px solid #e8d8aa;
+  white-space: nowrap;
+}
+.milestone-marker {
+  position: absolute; top: 0;
+  display: flex; flex-direction: column; align-items: center;
+  cursor: pointer; z-index: 5;
+  transform: translateX(-50%); padding-top: 4px;
+}
+.milestone-marker:hover .milestone-icon { transform: scale(1.2); }
+.milestone-icon { font-size: 18px; transition: transform .15s; filter: drop-shadow(0 1px 3px rgba(0,0,0,.2)); }
+.milestone-label {
+  font-size: 10px; font-weight: 700; margin-top: 1px;
+  white-space: nowrap; max-width: 88px; overflow: hidden; text-overflow: ellipsis;
+  text-align: center; letter-spacing: .2px;
+}
+
+/* ── Body ── */
+.gantt-body { position: relative; }
+.gantt-row { display: flex; border-bottom: 1px solid #eceef8; }
+.gantt-row:hover { filter: brightness(.97); }
+
+/* ── Row Label ── */
+.row-label {
+  position: sticky; left: 0; z-index: 10;
+  border-right: 2px solid #dde0ec;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 10px 0 0; gap: 6px; flex-shrink: 0;
+}
+.row-label-left { display: flex; align-items: center; gap: 0; flex: 1; min-width: 0; }
+.row-color-block { width: 6px; height: 100%; flex-shrink: 0; margin-right: 10px; }
+.row-label-icon  { font-size: 17px; flex-shrink: 0; margin-right: 7px; }
+.row-label-text  {
+  font-weight: 700; font-size: 14px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+  cursor: pointer; padding: 2px 4px; border-radius: 4px;
+  transition: background .12s; flex: 1;
+}
+.row-label-text:hover { background: rgba(0,0,0,.05); }
+.row-actions { display: none; gap: 3px; flex-shrink: 0; }
+.gantt-row:hover .row-actions { display: flex; }
+.row-action-btn {
+  font-size: 14px; cursor: pointer; padding: 4px 5px;
+  border-radius: 5px; opacity: .6; transition: opacity .12s, background .12s;
+}
+.row-action-btn:hover { opacity: 1; background: rgba(0,0,0,.07); }
+
+/* ── Row Grid ── */
+.row-grid { position: relative; flex-shrink: 0; }
+.grid-lines { display: flex; height: 100%; }
+.grid-cell  { height: 100%; border-right: 1px solid #eceef8; flex-shrink: 0; }
+.grid-cell.weekend  { background: rgba(150,120,220,.05); }
+.grid-cell.today-col { background: rgba(217,48,37,.04); }
+
+/* ── Row Resize Handle ── */
+.row-resize-handle {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 6px;
+  cursor: row-resize; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+}
+.row-resize-handle::after {
+  content: '';
+  width: 36px; height: 3px; border-radius: 2px;
+  background: #c8cde8; opacity: 0; transition: opacity .15s;
+}
+.gantt-row:hover .row-resize-handle::after { opacity: 1; }
+.row-resize-handle:hover::after { background: #4a7cf8; opacity: 1 !important; }
+
+/* ── Task Bars ── */
+.task-bar {
+  position: absolute;
+  border-radius: 9px;
+  display: flex; align-items: center;
+  padding: 0 10px 0 14px; cursor: pointer;
+  user-select: none; overflow: hidden; gap: 4px; z-index: 5;
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+  transition: filter .12s, box-shadow .12s, transform .1s;
+}
+.task-bar:hover { filter: brightness(.92); box-shadow: 0 4px 14px rgba(0,0,0,.14); transform: translateY(-1px); }
+.task-color-stripe { position: absolute; left:0; top:0; bottom:0; width:5px; border-radius:9px 0 0 9px; }
+.task-label { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; padding-left: 4px; }
+.task-delete { font-size: 14px; opacity: 0; flex-shrink: 0; transition: opacity .12s; padding: 0 2px; }
+.task-bar:hover .task-delete { opacity: .6; }
+.task-delete:hover { opacity: 1 !important; }
+
+/* ── Today Line ── */
+.today-line {
+  position: absolute; width: 2px; top: 0;
+  background: linear-gradient(180deg, #d93025, rgba(217,48,37,.25));
+  pointer-events: none; z-index: 15;
+}
+.today-lbl {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  font-size: 9px; font-weight: 800; color: #d93025;
+  background: #fff; padding: 1px 4px; border-radius: 3px; white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0,0,0,.15);
+}
+
+/* ── Milestone V-line ── */
+.milestone-vline {
+  position: absolute; top: 0; width: 2px;
+  border-left: 2px dashed; opacity: .28; pointer-events: none; z-index: 3;
+}
+
+/* ── Empty ── */
+.empty-state { padding: 60px 24px; text-align: center; color: #bbb; font-size: 15px; }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(10,15,40,.45); z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(3px);
+}
+.modal-overlay.hidden { display: none; }
+.modal-box {
+  background: #fff; border-radius: 14px; padding: 26px 26px 22px;
+  min-width: 360px; max-width: 500px;
+  box-shadow: 0 16px 56px rgba(0,0,0,.22);
+  animation: mIn .17s ease;
+}
+@keyframes mIn { from { transform: scale(.93); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-title { font-size: 17px; font-weight: 800; color: #1a1a2e; margin-bottom: 20px; }
+.modal-field { margin-bottom: 15px; }
+.modal-field label { display: block; font-size: 12px; font-weight: 700; color: #777; margin-bottom: 6px; letter-spacing: .3px; }
+.modal-input {
+  width: 100%; border: 1.5px solid #d0d4e8; border-radius: 8px;
+  padding: 9px 12px; font-size: 14px; color: #222; outline: none;
+  transition: border-color .15s; font-family: inherit;
+}
+.modal-input:focus { border-color: #4a7cf8; box-shadow: 0 0 0 3px rgba(74,124,248,.12); }
+.modal-row { display: flex; gap: 12px; }
+.modal-row .modal-field { flex: 1; margin-bottom: 0; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 22px; padding-top: 16px; border-top: 1px solid #eee; }
+.modal-actions .btn-danger { margin-right: auto; }
+.color-opts { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 4px; }
+.color-opt { width: 32px; height: 32px; border-radius: 8px; cursor: pointer; position: relative; transition: transform .12s, box-shadow .12s; }
+.color-opt:hover { transform: scale(1.15); }
+.color-opt.selected::after { content:'✓'; position: absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; color:rgba(0,0,0,.45); }
+.color-opt.selected { box-shadow: 0 0 0 3px #4a7cf8; transform: scale(1.1); }
+</style>
+</head>
+<body>
+<div class="toolbar" id="toolbar"></div>
+<div class="center-stage" id="center-stage">
+  <div class="gantt-canvas" id="gantt-canvas">
+    <div class="gantt-inner" id="gantt-inner"></div>
+  </div>
+</div>
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div id="modal-box" class="modal-box"></div>
+</div>
+
+<script>
+// ── Fixed Layout Constants ─────────────────────────────────────────────────
+const LABEL_W  = 170;
+const TITLE_H  = 58;
+const H_GROUP  = 34;
+const H_COL    = 28;
+const H_MILE   = 44;
+const HEADER_H = H_GROUP + H_COL + H_MILE;
+const TASK_H    = 42;
+const MIN_ROW_H = 36;
+const DEF_ROW_H = 60;
+
+// ── Colors ────────────────────────────────────────────────────────────────
+const COLORS = [
+  { key:'purple', bg:'#ede7f6', fg:'#7e57c2', border:'#b39ddb' },
+  { key:'blue',   bg:'#e3f2fd', fg:'#1565c0', border:'#90caf9' },
+  { key:'green',  bg:'#e8f5e9', fg:'#2e7d32', border:'#a5d6a7' },
+  { key:'orange', bg:'#fff3e0', fg:'#e65100', border:'#ffcc80' },
+  { key:'red',    bg:'#ffebee', fg:'#c62828', border:'#ef9a9a' },
+  { key:'pink',   bg:'#fce4ec', fg:'#ad1457', border:'#f48fb1' },
+  { key:'teal',   bg:'#e0f2f1', fg:'#00695c', border:'#80cbc4' },
+  { key:'indigo', bg:'#e8eaf6', fg:'#283593', border:'#9fa8da' },
+];
+const ROW_ICONS = ['📋','🚗','🅿️','🔧','📊','🎯','🔔','✅','🛠','📌'];
+function getC(k) { return COLORS.find(c=>c.key===k)||COLORS[0]; }
+
+// ── State ─────────────────────────────────────────────────────────────────
+let S = { title:'项目测试计划', startDate:'2026-04-07', endDate:'2026-05-04', milestones:[], rows:[], nextId:1 };
+function save() { try { localStorage.setItem('gantt_v3', JSON.stringify(S)); } catch(e){} }
+function load() { try { const r=localStorage.getItem('gantt_v3'); if(r) S=JSON.parse(r); } catch(e){} }
+
+// ── Date Utils ────────────────────────────────────────────────────────────
+function parseD(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function strD(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function fmtMD(d){ return `${d.getMonth()+1}/${d.getDate()}`; }
+function daysDiff(a,b){ return Math.round((parseD(b)-parseD(a))/864e5); }
+function getDays(){ const days=[],end=parseD(S.endDate); let cur=parseD(S.startDate); while(cur<=end){days.push(new Date(cur));cur.setDate(cur.getDate()+1);} return days; }
+function todayStr(){ return strD(new Date()); }
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Adaptive Columns ──────────────────────────────────────────────────────
+// Returns { cols, granularity, topGroups }
+// cols: [{ label, startDate, endDate, dayCount, isWeekend }]
+// topGroups: [{ label, colCount }]
+function buildColumns() {
+  const days = getDays();
+  const n = days.length;
+  let cols, gran;
+
+  if (n <= 90) {
+    // Daily
+    gran = 'day';
+    cols = days.map(d => ({
+      label: String(d.getDate()),
+      startDate: strD(d),
+      endDate: strD(d),
+      dayCount: 1,
+      isWeekend: d.getDay()===0||d.getDay()===6,
+    }));
+  } else {
+    // Weekly (group by ISO week starting Monday)
+    gran = 'week';
+    cols = [];
+    let i = 0;
+    while (i < days.length) {
+      let j = i + 1;
+      while (j < days.length && days[j].getDay() !== 1 && (j-i) < 7) j++;
+      const sl = days.slice(i, j);
+      cols.push({
+        label: fmtMD(sl[0]),
+        startDate: strD(sl[0]),
+        endDate:   strD(sl[sl.length-1]),
+        dayCount: sl.length,
+        isWeekend: false,
+      });
+      i = j;
+    }
+  }
+
+  // Top groups
+  let topGroups;
+  if (gran === 'day') {
+    // Group by week
+    topGroups = [];
+    days.forEach(d => {
+      const isMonday = d.getDay() === 1;
+      if (topGroups.length === 0 || isMonday) {
+        const weekEnd = new Date(d); weekEnd.setDate(d.getDate()+6);
+        const endClipped = weekEnd > parseD(S.endDate) ? parseD(S.endDate) : weekEnd;
+        topGroups.push({ label: `${fmtMD(d)} - ${fmtMD(endClipped)}`, colCount: 0 });
+      }
+      topGroups[topGroups.length-1].colCount++;
+    });
+  } else {
+    // Group by month
+    topGroups = [];
+    cols.forEach(col => {
+      const d = parseD(col.startDate);
+      const lbl = `${d.getFullYear()}年${d.getMonth()+1}月`;
+      if (topGroups.length===0 || topGroups[topGroups.length-1].label!==lbl) {
+        topGroups.push({ label: lbl, colCount: 1 });
+      } else {
+        topGroups[topGroups.length-1].colCount++;
+      }
+    });
+  }
+
+  return { cols, gran, topGroups };
+}
+
+// Fractional column position [0, cols.length] for a given date
+function colPos(dateStr, cols) {
+  const d = parseD(dateStr);
+  for (let i = 0; i < cols.length; i++) {
+    const cs = parseD(cols[i].startDate);
+    const ce = parseD(cols[i].endDate);
+    if (d >= cs && d <= ce) {
+      const frac = daysDiff(cols[i].startDate, dateStr) / cols[i].dayCount;
+      return i + frac;
+    }
+  }
+  if (d < parseD(cols[0].startDate)) return 0;
+  return cols.length;
+}
+
+// ── Dimensions ────────────────────────────────────────────────────────────
+let CANVAS_W = 1280;
+
+function computeCanvasW() {
+  const stage = document.getElementById('center-stage');
+  if (!stage) return 860;
+  return Math.max(540, Math.round((stage.clientWidth - 48) * 2 / 3));
+}
+
+function computeColW(numCols) {
+  return Math.max(14, (CANVAS_W - LABEL_W) / numCols);
+}
+
+function getRowH(row) {
+  return (row && row.height && row.height >= MIN_ROW_H) ? row.height : DEF_ROW_H;
+}
+
+// ── Render Toolbar ────────────────────────────────────────────────────────
+function renderToolbar() {
+  document.getElementById('toolbar').innerHTML = `
+    <span class="toolbar-title" id="tb-title" title="双击编辑标题">📋 ${escH(S.title)}</span>
+    <div class="toolbar-sep"></div>
+    <span class="toolbar-label">日期范围</span>
+    <input type="date" class="toolbar-input" id="tb-start" value="${S.startDate}">
+    <span class="toolbar-label" style="margin:0 -3px">至</span>
+    <input type="date" class="toolbar-input" id="tb-end" value="${S.endDate}">
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-primary" id="tb-add-row">＋ 添加行</button>
+    <button class="btn btn-outline" id="tb-add-mile">🏁 里程碑</button>
+    <button class="btn btn-outline" id="tb-export">📷 导出16:9</button>
+  `;
+  document.getElementById('tb-title').ondblclick = () => {
+    const v = prompt('修改标题', S.title); if(v!==null){S.title=v;save();renderToolbar();renderGantt();}
+  };
+  document.getElementById('tb-start').onchange = e => { S.startDate=e.target.value; save(); renderGantt(); };
+  document.getElementById('tb-end').onchange   = e => { S.endDate=e.target.value;   save(); renderGantt(); };
+  document.getElementById('tb-add-row').onclick  = () => openRowModal();
+  document.getElementById('tb-add-mile').onclick = () => openMileModal();
+  document.getElementById('tb-export').onclick   = doExport;
+}
+
+// ── Render Gantt ──────────────────────────────────────────────────────────
+function renderGantt() {
+  CANVAS_W = computeCanvasW();
+  const { cols, gran, topGroups } = buildColumns();
+  const COL_W  = computeColW(cols.length);
+  const totalW = cols.length * COL_W;
+  const canvasH = Math.round(CANVAS_W * 9/16);
+  const totalRowH = S.rows.reduce((s, r) => s + getRowH(r), 0);
+
+  // Set canvas size
+  const canvasEl = document.getElementById('gantt-canvas');
+  canvasEl.style.width  = `${CANVAS_W}px`;
+  canvasEl.style.height = `${Math.max(canvasH, TITLE_H + HEADER_H + totalRowH)}px`;
+
+  const todayPos = colPos(todayStr(), cols); // fractional
+
+  // ── Top group row ──
+  const groupCells = topGroups.map((g,i) =>
+    `<div class="h-group-cell" style="width:${g.colCount*COL_W}px;height:${H_GROUP}px">${g.label}</div>`
+  ).join('');
+
+  // ── Column header row ──
+  const colCells = cols.map((col, i) => {
+    const isWE = col.isWeekend;
+    const isTd = (todayPos >= i && todayPos < i+1);
+    const cls  = [isWE?'weekend':'', isTd?'today-col':''].filter(Boolean).join(' ');
+    return `<div class="h-col-cell ${cls}" style="width:${COL_W}px;height:${H_COL}px">${col.label}</div>`;
+  }).join('');
+
+  // ── Milestone header ──
+  const mileHeaders = S.milestones.map(m => {
+    const px = colPos(m.date, cols);
+    if (px < 0 || px > cols.length) return '';
+    const c = getC(m.color);
+    return `
+      <div class="milestone-marker" data-id="${m.id}" style="left:${px*COL_W + COL_W/2}px;height:${H_MILE}px;justify-content:center"
+           title="${escH(m.label)} (${m.date})">
+        <span class="milestone-icon">${m.icon||'🏆'}</span>
+        <span class="milestone-label" style="color:${c.fg}">${escH(m.label)}</span>
+      </div>`;
+  }).join('');
+
+  // ── Rows ──
+  const rowsHtml = S.rows.map((row, ri) => {
+    const ROW_H = getRowH(row);
+    const c = getC(row.color);
+    const cells = cols.map((col,i) => {
+      const isWE = col.isWeekend;
+      const isTd = (todayPos >= i && todayPos < i+1);
+      const cls  = [isWE?'weekend':'', isTd?'today-col':''].filter(Boolean).join(' ');
+      return `<div class="grid-cell ${cls}" style="width:${COL_W}px"></div>`;
+    }).join('');
+
+    const bars = (row.tasks||[]).map(t => {
+      const sp = colPos(t.startDate, cols);
+      const ep = colPos(t.endDate,   cols) + 1/cols[Math.min(Math.floor(colPos(t.endDate,cols)), cols.length-1)].dayCount;
+      if (ep < 0 || sp > cols.length) return '';
+      const left = Math.max(0, sp) * COL_W;
+      const w    = Math.max(COL_W * .8, (ep - Math.max(0,sp)) * COL_W - 4);
+      const tc   = getC(t.color||row.color);
+      const taskH = Math.min(TASK_H, ROW_H - 10);
+      return `
+        <div class="task-bar" data-task-id="${t.id}" data-row-id="${row.id}"
+             style="left:${left}px;width:${w}px;top:${(ROW_H-taskH)/2}px;height:${taskH}px;
+                    background:${tc.bg};border:1.5px solid ${tc.border};color:${tc.fg}">
+          <div class="task-color-stripe" style="background:${tc.fg}"></div>
+          <span class="task-label">${escH(t.label)}</span>
+          <span class="task-delete" data-task-id="${t.id}" data-row-id="${row.id}">✕</span>
+        </div>`;
+    }).join('');
+
+    const labelBg = `linear-gradient(135deg, ${c.bg}, ${c.bg}cc)`;
+    return `
+      <div class="gantt-row" data-row-id="${row.id}" style="height:${ROW_H}px;position:relative">
+        <div class="row-label" style="width:${LABEL_W}px;background:${labelBg}">
+          <div class="row-label-left">
+            <div class="row-color-block" style="background:${c.fg};width:6px;height:${ROW_H}px;flex-shrink:0"></div>
+            <span class="row-label-icon" style="margin-left:10px">${row.icon||ROW_ICONS[ri%ROW_ICONS.length]}</span>
+            <span class="row-label-text" data-row-id="${row.id}" style="color:${c.fg}">${escH(row.label)}</span>
+          </div>
+          <div class="row-actions">
+            <span class="row-action-btn" data-action="color" data-row-id="${row.id}" title="颜色">🎨</span>
+            <span class="row-action-btn" data-action="del"   data-row-id="${row.id}" title="删除">🗑</span>
+          </div>
+        </div>
+        <div class="row-grid" data-row-id="${row.id}" style="width:${totalW}px;height:${ROW_H}px">
+          <div class="grid-lines">${cells}</div>
+          ${bars}
+        </div>
+        <div class="row-resize-handle" data-row-id="${row.id}"></div>
+      </div>`;
+  }).join('');
+
+  // ── Today line ──
+  let todayLine = '';
+  if (todayPos >= 0 && todayPos <= cols.length) {
+    const lx = todayPos * COL_W;
+    todayLine = `<div class="today-line" style="left:${lx}px;height:${totalRowH}px">
+      <div class="today-lbl">今日</div></div>`;
+  }
+
+  // ── Milestone v-lines ──
+  const mileVLines = S.milestones.map(m => {
+    const px = colPos(m.date, cols);
+    if (px < 0 || px > cols.length) return '';
+    const c = getC(m.color);
+    return `<div class="milestone-vline" style="left:${px*COL_W}px;height:${totalRowH}px;border-color:${c.fg}"></div>`;
+  }).join('');
+
+  const granLabel = gran==='week' ? '以周为单位' : '以天为单位';
+
+  document.getElementById('gantt-inner').innerHTML = `
+    <div class="gantt-title-banner">
+      <span class="granularity-badge">${granLabel}</span>
+      <span class="gantt-title-text" id="inner-title" title="双击编辑">📋 ${escH(S.title)}</span>
+      <span class="gantt-title-sub">🗓 ${S.startDate} ~ ${S.endDate}</span>
+    </div>
+    <div class="gantt-header" style="top:${TITLE_H}px">
+      <div class="gantt-corner" style="width:${LABEL_W}px;height:${HEADER_H}px">工作事项</div>
+      <div class="gantt-timeline" style="width:${totalW}px">
+        <div class="h-groups">${groupCells}</div>
+        <div class="h-cols">${colCells}</div>
+        <div class="h-milestones" id="h-milestones" style="height:${H_MILE}px;position:relative">
+          <div class="h-mile-label">⭐ 重要节点</div>
+          ${mileHeaders}
+        </div>
+      </div>
+    </div>
+    <div class="gantt-body" id="gantt-body" style="position:relative">
+      ${S.rows.length===0?'<div class="empty-state">暂无工作行，点击上方「＋ 添加行」开始规划</div>':''}
+      ${rowsHtml}
+      <div style="position:absolute;top:0;left:${LABEL_W}px;width:${totalW}px;height:${totalRowH}px;pointer-events:none">
+        ${todayLine}${mileVLines}
+      </div>
+    </div>
+  `;
+
+  attachEvents(cols, COL_W);
+
+  // Inner title dblclick
+  const it = document.getElementById('inner-title');
+  if(it) it.ondblclick = () => { const v=prompt('修改标题',S.title); if(v!==null){S.title=v;save();renderToolbar();renderGantt();} };
+}
+
+// ── Events ────────────────────────────────────────────────────────────────
+let drag = null;
+let rowResize = null;
+
+function attachEvents(cols, COL_W) {
+  document.querySelectorAll('.row-label-text').forEach(el => {
+    el.ondblclick = () => { const row=S.rows.find(r=>r.id===+el.dataset.rowId); if(row) openRowModal(row); };
+  });
+  document.querySelectorAll('.row-action-btn').forEach(el => {
+    el.onclick = e => {
+      e.stopPropagation();
+      const row=S.rows.find(r=>r.id===+el.dataset.rowId); if(!row) return;
+      if(el.dataset.action==='del'){
+        if(confirm(`确认删除「${row.label}」？`)){S.rows=S.rows.filter(r=>r.id!==row.id);save();renderGantt();}
+      } else { openColorPicker(row); }
+    };
+  });
+  document.querySelectorAll('.task-bar').forEach(el => {
+    el.onclick = e => { if(!e.target.classList.contains('task-delete')) openTaskModal(+el.dataset.rowId,+el.dataset.taskId); };
+  });
+  document.querySelectorAll('.task-delete').forEach(el => {
+    el.onclick = e => {
+      e.stopPropagation();
+      const row=S.rows.find(r=>r.id===+el.dataset.rowId);
+      if(row){row.tasks=row.tasks.filter(t=>t.id!==+el.dataset.taskId);save();renderGantt();}
+    };
+  });
+
+  // Row resize drag
+  document.querySelectorAll('.row-resize-handle').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      if(e.button!==0) return;
+      e.preventDefault(); e.stopPropagation();
+      const rowId=+el.dataset.rowId;
+      const row=S.rows.find(r=>r.id===rowId); if(!row) return;
+      const startY=e.clientY;
+      const startH=getRowH(row);
+      document.body.style.cursor='row-resize';
+      rowResize={rowId};
+      const onMove=mv=>{
+        const newH=Math.max(MIN_ROW_H, startH+(mv.clientY-startY));
+        row.height=Math.round(newH);
+        const rowEl=document.querySelector(`.gantt-row[data-row-id="${rowId}"]`);
+        if(rowEl){
+          rowEl.style.height=newH+'px';
+          const grid=rowEl.querySelector('.row-grid');
+          if(grid) grid.style.height=newH+'px';
+          const block=rowEl.querySelector('.row-color-block');
+          if(block) block.style.height=newH+'px';
+        }
+      };
+      const onUp=()=>{
+        document.removeEventListener('mousemove',onMove);
+        document.removeEventListener('mouseup',onUp);
+        document.body.style.cursor='';
+        rowResize=null;
+        save(); renderGantt();
+      };
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onUp);
+    });
+  });
+
+  // Drag to create
+  document.querySelectorAll('.row-grid').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      if(e.button!==0||e.target.closest('.task-bar')||e.target.closest('.row-resize-handle')) return;
+      e.preventDefault();
+      const rowId=+el.dataset.rowId;
+      const row=S.rows.find(r=>r.id===rowId);
+      const ROW_H=getRowH(row);
+      const rect=el.getBoundingClientRect();
+      const sc=Math.floor((e.clientX-rect.left)/COL_W);
+      if(sc<0||sc>=cols.length) return;
+      const c=getC(row?.color||'blue');
+      const taskH=Math.min(TASK_H, ROW_H-10);
+      const pv=document.createElement('div');
+      pv.className='task-bar';
+      pv.style.cssText=`left:${sc*COL_W}px;width:${COL_W-4}px;top:${(ROW_H-taskH)/2}px;height:${taskH}px;
+        background:${c.bg};border:2px dashed ${c.border};color:${c.fg};opacity:.65;pointer-events:none;z-index:8;`;
+      el.appendChild(pv);
+      drag={rowId,sc,ec:sc,pv,rect,cols,COL_W};
+      const onMove=mv=>{
+        if(!drag) return;
+        drag.ec=Math.min(Math.max(drag.sc,Math.floor((mv.clientX-drag.rect.left)/COL_W)),cols.length-1);
+        drag.pv.style.left=`${drag.sc*COL_W}px`;
+        drag.pv.style.width=`${(drag.ec-drag.sc+1)*COL_W-4}px`;
+      };
+      const onUp=()=>{
+        document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);
+        if(!drag) return;
+        drag.pv.remove();
+        const sd=cols[drag.sc].startDate, ed=cols[drag.ec].endDate, d=drag; drag=null;
+        openTaskModal(d.rowId,null,sd,ed);
+      };
+      document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);
+    });
+  });
+
+  // Milestone row click
+  const mh=document.getElementById('h-milestones');
+  if(mh){
+    mh.onclick=e=>{
+      if(e.target.closest('.milestone-marker')||e.target.closest('.h-mile-label')) return;
+      const rect=mh.getBoundingClientRect();
+      const col=Math.floor((e.clientX-rect.left)/COL_W);
+      if(col>=0&&col<cols.length) openMileModal(null,cols[col].startDate);
+    };
+    document.querySelectorAll('.milestone-marker').forEach(el=>{
+      el.onclick=e=>{e.stopPropagation();const m=S.milestones.find(x=>x.id===+el.dataset.id);if(m) openMileModal(m);};
+    });
+  }
+}
+
+// ── Modals ────────────────────────────────────────────────────────────────
+function showModal(html){document.getElementById('modal-overlay').classList.remove('hidden');document.getElementById('modal-box').innerHTML=html;}
+function hideModal(){document.getElementById('modal-overlay').classList.add('hidden');}
+function colorOptsHtml(sel){return COLORS.map(c=>`<div class="color-opt${c.key===sel?' selected':''}" data-color="${c.key}" style="background:${c.bg};border:2px solid ${c.border}"></div>`).join('');}
+function bindColors(cid,hid){document.querySelectorAll(`#${cid} .color-opt`).forEach(el=>{el.onclick=()=>{document.querySelectorAll(`#${cid} .color-opt`).forEach(x=>x.classList.remove('selected'));el.classList.add('selected');document.getElementById(hid).value=el.dataset.color;};});}
+
+function openRowModal(row){
+  const isEdit=!!row,ic=row?.color||COLORS[S.rows.length%COLORS.length].key;
+  showModal(`<div class="modal-title">${isEdit?'编辑行':'添加工作行'}</div>
+    <div class="modal-field"><label>行名称</label><input id="m-rn" class="modal-input" type="text" value="${isEdit?escH(row.label):''}" placeholder="输入工作事项名称"></div>
+    <div class="modal-field"><label>颜色</label><div id="m-rc" class="color-opts">${colorOptsHtml(ic)}</div><input id="m-rcv" type="hidden" value="${ic}"></div>
+    <div class="modal-actions">${isEdit?`<button class="btn btn-danger" id="m-rdel">删除行</button>`:''}<button class="btn btn-outline" id="m-cancel">取消</button><button class="btn btn-primary" id="m-ok">确认</button></div>`);
+  setTimeout(()=>{
+    document.getElementById('m-rn').focus();bindColors('m-rc','m-rcv');
+    document.getElementById('m-cancel').onclick=hideModal;
+    if(isEdit) document.getElementById('m-rdel').onclick=()=>{if(confirm(`删除「${row.label}」？`)){S.rows=S.rows.filter(r=>r.id!==row.id);hideModal();save();renderGantt();}};
+    document.getElementById('m-ok').onclick=()=>{
+      const label=document.getElementById('m-rn').value.trim(),color=document.getElementById('m-rcv').value;
+      if(!label) return alert('请输入行名称');
+      if(isEdit){row.label=label;row.color=color;}else{S.rows.push({id:S.nextId++,label,color,tasks:[]});}
+      hideModal();save();renderGantt();
+    };
+    document.getElementById('m-rn').onkeydown=e=>{if(e.key==='Enter')document.getElementById('m-ok').click();if(e.key==='Escape')hideModal();};
+  },0);
+}
+
+function openColorPicker(row){
+  showModal(`<div class="modal-title">更改颜色：${escH(row.label)}</div>
+    <div class="modal-field"><div id="m-cp" class="color-opts">${colorOptsHtml(row.color)}</div><input id="m-cpv" type="hidden" value="${row.color}"></div>
+    <div class="modal-actions"><button class="btn btn-outline" id="m-cancel">取消</button><button class="btn btn-primary" id="m-ok">确认</button></div>`);
+  setTimeout(()=>{bindColors('m-cp','m-cpv');document.getElementById('m-cancel').onclick=hideModal;document.getElementById('m-ok').onclick=()=>{row.color=document.getElementById('m-cpv').value;hideModal();save();renderGantt();};},0);
+}
+
+function openTaskModal(rowId,taskId,defS,defE){
+  const row=S.rows.find(r=>r.id===rowId);if(!row) return;
+  const task=taskId?row.tasks.find(t=>t.id===taskId):null,isEdit=!!task;
+  const sd=task?.startDate||defS||S.startDate,ed=task?.endDate||defE||sd,ic=task?.color||row.color;
+  showModal(`<div class="modal-title">${isEdit?'编辑任务':'新建任务'}</div>
+    <div class="modal-field"><label>任务名称</label><input id="m-tn" class="modal-input" type="text" value="${isEdit?escH(task.label):''}" placeholder="输入任务名称"></div>
+    <div class="modal-row"><div class="modal-field"><label>开始日期</label><input id="m-ts" class="modal-input" type="date" value="${sd}"></div><div class="modal-field"><label>结束日期</label><input id="m-te" class="modal-input" type="date" value="${ed}"></div></div>
+    <div class="modal-field"><label>颜色</label><div id="m-tc" class="color-opts">${colorOptsHtml(ic)}</div><input id="m-tcv" type="hidden" value="${ic}"></div>
+    <div class="modal-actions">${isEdit?`<button class="btn btn-danger" id="m-tdel">删除</button>`:''}<button class="btn btn-outline" id="m-cancel">取消</button><button class="btn btn-primary" id="m-ok">确认</button></div>`);
+  setTimeout(()=>{
+    document.getElementById('m-tn').focus();bindColors('m-tc','m-tcv');
+    document.getElementById('m-cancel').onclick=hideModal;
+    if(isEdit) document.getElementById('m-tdel').onclick=()=>{row.tasks=row.tasks.filter(t=>t.id!==task.id);hideModal();save();renderGantt();};
+    document.getElementById('m-ok').onclick=()=>{
+      const label=document.getElementById('m-tn').value.trim();
+      const s=document.getElementById('m-ts').value,e=document.getElementById('m-te').value,color=document.getElementById('m-tcv').value;
+      if(!label) return alert('请输入任务名称');if(!s||!e) return alert('请设置日期');if(s>e) return alert('开始不能晚于结束');
+      if(isEdit){task.label=label;task.startDate=s;task.endDate=e;task.color=color;}
+      else{row.tasks.push({id:S.nextId++,label,startDate:s,endDate:e,color});}
+      hideModal();save();renderGantt();
+    };
+    document.getElementById('m-tn').onkeydown=e=>{if(e.key==='Enter')document.getElementById('m-ok').click();if(e.key==='Escape')hideModal();};
+  },0);
+}
+
+const MILE_ICONS=['🏆','🎯','🚀','🔔','⭐','✅','🎉','📌','🏁','💡'];
+function openMileModal(m,defDate){
+  const isEdit=!!m,ic=m?.color||'orange',ii=m?.icon||'🏆';
+  const iconOpts=MILE_ICONS.map(x=>`<span style="font-size:20px;cursor:pointer;padding:5px 8px;border-radius:7px;transition:background .1s;${x===ii?'background:#eef0f8;':''}" class="mi-opt" data-icon="${x}">${x}</span>`).join('');
+  showModal(`<div class="modal-title">${isEdit?'编辑里程碑':'添加里程碑'}</div>
+    <div class="modal-field"><label>名称</label><input id="m-mn" class="modal-input" type="text" value="${isEdit?escH(m.label):''}" placeholder="里程碑名称"></div>
+    <div class="modal-field"><label>日期</label><input id="m-md" class="modal-input" type="date" value="${isEdit?m.date:(defDate||S.startDate)}"></div>
+    <div class="modal-field"><label>图标</label><div style="display:flex;gap:4px;flex-wrap:wrap">${iconOpts}<input id="m-miv" type="hidden" value="${ii}"></div></div>
+    <div class="modal-field"><label>颜色</label><div id="m-mc" class="color-opts">${colorOptsHtml(ic)}</div><input id="m-mcv" type="hidden" value="${ic}"></div>
+    <div class="modal-actions">${isEdit?`<button class="btn btn-danger" id="m-mdel">删除</button>`:''}<button class="btn btn-outline" id="m-cancel">取消</button><button class="btn btn-primary" id="m-ok">确认</button></div>`);
+  setTimeout(()=>{
+    document.getElementById('m-mn').focus();bindColors('m-mc','m-mcv');
+    document.querySelectorAll('.mi-opt').forEach(el=>el.onclick=()=>{document.querySelectorAll('.mi-opt').forEach(x=>x.style.background='');el.style.background='#eef0f8';document.getElementById('m-miv').value=el.dataset.icon;});
+    document.getElementById('m-cancel').onclick=hideModal;
+    if(isEdit) document.getElementById('m-mdel').onclick=()=>{S.milestones=S.milestones.filter(x=>x.id!==m.id);hideModal();save();renderGantt();};
+    document.getElementById('m-ok').onclick=()=>{
+      const label=document.getElementById('m-mn').value.trim(),date=document.getElementById('m-md').value;
+      const color=document.getElementById('m-mcv').value,icon=document.getElementById('m-miv').value;
+      if(!label) return alert('请输入名称');if(!date) return alert('请选择日期');
+      if(isEdit){m.label=label;m.date=date;m.color=color;m.icon=icon;}
+      else{S.milestones.push({id:S.nextId++,label,date,color,icon});}
+      hideModal();save();renderGantt();
+    };
+    document.getElementById('m-mn').onkeydown=e=>{if(e.key==='Enter')document.getElementById('m-ok').click();if(e.key==='Escape')hideModal();};
+  },0);
+}
+
+// ── Export 16:9 ───────────────────────────────────────────────────────────
+async function doExport() {
+  if(!window.html2canvas) return alert('导出库未加载，请检查网络后刷新重试。');
+  const btn=document.getElementById('tb-export');
+  btn.textContent='导出中...';btn.disabled=true;
+  try {
+    const el=document.getElementById('gantt-inner');
+    const w=CANVAS_W, h=Math.round(CANVAS_W*9/16);
+    const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#fff',width:w,height:h,windowWidth:w,windowHeight:h});
+    const a=document.createElement('a');
+    a.download=`测试计划_${todayStr()}.png`;a.href=canvas.toDataURL('image/png');a.click();
+  } catch(e){alert('导出失败：'+e.message);}
+  finally{btn.textContent='📷 导出16:9';btn.disabled=false;}
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', ()=>{
+  load();
+  if(S.rows.length===0){
+    S.rows=[
+      {id:S.nextId++,label:'申请文档',  color:'purple',tasks:[]},
+      {id:S.nextId++,label:'牌照申请车',color:'blue',  tasks:[]},
+      {id:S.nextId++,label:'考试用车',  color:'green', tasks:[]},
+    ];
+    save();
+  }
+  renderToolbar();
+  renderGantt();
+  document.getElementById('modal-overlay').onclick=e=>{if(e.target===document.getElementById('modal-overlay'))hideModal();};
+  window.addEventListener('resize', ()=>{ CANVAS_W=computeCanvasW(); renderGantt(); });
+});
+</script>
+</body>
+</html>
