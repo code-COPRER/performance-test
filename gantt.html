@@ -8,160 +8,149 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
-  background: #b8bcc8;
+  font-family: var(--font, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif);
+  background: var(--body-bg, #b8bcc8);
   height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  color: #1a1a2e;
+  color: var(--body-fg, #1a1a2e);
+  transition: background .35s, color .35s;
 }
 
 /* ── Toolbar ── */
 .toolbar {
   flex-shrink: 0;
-  background: #2c2f3f;
-  padding: 9px 20px;
+  background: var(--toolbar-bg);
+  padding: var(--toolbar-pad, 9px 20px);
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  box-shadow: var(--toolbar-shadow, 0 2px 8px rgba(0,0,0,.25));
   z-index: 200;
+  transition: background .35s;
+  border-bottom: var(--toolbar-border, none);
 }
 .toolbar-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #fff;
-  cursor: pointer;
-  padding: 4px 10px;
-  border-radius: 6px;
-  transition: background .15s;
+  font-size: 15px; font-weight: 700;
+  color: var(--toolbar-fg);
+  cursor: pointer; padding: 4px 10px; border-radius: 6px;
+  transition: background .15s, color .35s;
 }
-.toolbar-title:hover { background: rgba(255,255,255,.1); }
-.toolbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,.2); margin: 0 2px; }
-.toolbar-label { font-size: 12px; color: #aaa; white-space: nowrap; }
+.toolbar-title:hover { background: var(--toolbar-hover, rgba(255,255,255,.1)); }
+.toolbar-sep { width: 1px; height: 20px; background: var(--toolbar-sep); margin: 0 2px; }
+.toolbar-label { font-size: 12px; color: var(--toolbar-label); white-space: nowrap; }
 .toolbar-input {
-  border: 1.5px solid rgba(255,255,255,.2);
-  border-radius: 7px;
-  padding: 5px 9px;
-  font-size: 13px;
-  color: #fff;
-  background: rgba(255,255,255,.1);
-  outline: none;
-  transition: border-color .15s;
-  font-family: inherit;
+  border: var(--input-border-w, 1.5px) solid var(--toolbar-input-border);
+  border-radius: var(--input-radius, 7px);
+  padding: 5px 9px; font-size: 13px;
+  color: var(--toolbar-fg);
+  background: var(--toolbar-input-bg);
+  outline: none; font-family: inherit;
+  transition: border-color .15s, background .35s, color .35s;
 }
-.toolbar-input::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .6; }
-.toolbar-input:focus { border-color: #6a9cf8; background: rgba(255,255,255,.15); }
+.toolbar-input::-webkit-calendar-picker-indicator { filter: var(--toolbar-picker-filter, invert(1)); opacity: .6; }
+.toolbar-input:focus { border-color: var(--accent); }
+.toolbar-select {
+  border: var(--input-border-w, 1.5px) solid var(--toolbar-input-border);
+  border-radius: var(--input-radius, 7px);
+  padding: 5px 9px; font-size: 13px;
+  color: var(--toolbar-fg);
+  background: var(--toolbar-input-bg);
+  outline: none; cursor: pointer; font-family: inherit;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center; padding-right: 24px;
+  transition: border-color .15s, background .35s, color .35s;
+}
+.toolbar-select:focus { border-color: var(--accent); }
+.toolbar-select option { background: #fff; color: #333; }
 .btn {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 7px 15px; border-radius: 8px;
+  padding: var(--btn-pad, 7px 15px); border-radius: var(--btn-radius, 8px);
   font-size: 13px; font-weight: 600; cursor: pointer; border: none;
-  transition: all .15s; white-space: nowrap;
+  transition: all .2s; white-space: nowrap;
+  letter-spacing: var(--btn-ls, 0);
 }
-.btn-primary { background: #4a7cf8; color: #fff; }
-.btn-primary:hover { background: #3a6ae0; }
-.btn-outline { background: rgba(255,255,255,.12); color: #dde; border: 1.5px solid rgba(255,255,255,.2); }
-.btn-outline:hover { background: rgba(255,255,255,.2); }
+.btn:active { transform: scale(.96); }
+.btn-primary { background: var(--accent); color: var(--btn-primary-fg, #fff); }
+.btn-primary:hover { filter: brightness(.9); }
+.btn-outline { background: var(--btn-outline-bg); color: var(--btn-outline-fg); border: var(--input-border-w, 1.5px) solid var(--btn-outline-border); }
+.btn-outline:hover { background: var(--btn-outline-hover); }
 .btn-danger { background: #fff0ef; color: #d93025; border: 1.5px solid #f5c0bc; }
 .btn-danger:hover { background: #ffd9d7; }
 
-/* ── Center Stage (gray outer) ── */
+/* ── Center Stage ── */
 .center-stage {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: auto;
-  padding: 28px 32px 40px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex: 1; overflow-y: auto; overflow-x: auto;
+  padding: var(--stage-pad, 28px 32px 40px);
+  display: flex; justify-content: center; align-items: flex-start;
+  scrollbar-width: none;
 }
+.center-stage::-webkit-scrollbar { display: none; }
 
-/* ── Gantt Canvas (white document) ── */
+/* ── Gantt Canvas ── */
 .gantt-canvas {
   flex-shrink: 0;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 12px 48px rgba(0,0,0,.28), 0 2px 8px rgba(0,0,0,.12);
-  overflow: auto;
-}
-
-/* ── Gantt Inner ── */
-.gantt-inner {
-  display: flex;
-  flex-direction: column;
-  min-width: fit-content;
   position: relative;
+  background: var(--canvas-bg);
+  border-radius: var(--canvas-radius, 14px);
+  box-shadow: var(--canvas-shadow);
+  border: var(--canvas-border, none);
+  overflow: auto;
+  scrollbar-width: none;
+  transition: background .35s, box-shadow .35s;
 }
+.gantt-canvas::-webkit-scrollbar { display: none; }
+.gantt-inner { display: flex; flex-direction: column; min-width: fit-content; position: relative; }
 
 /* ── Title Banner ── */
 .gantt-title-banner {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 24px;
-  height: 58px;
-  flex-shrink: 0;
-  gap: 14px;
+  position: sticky; top: 0; z-index: 30;
+  background: var(--banner-bg);
+  color: var(--banner-fg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 24px; height: var(--banner-h, 58px); flex-shrink: 0; gap: 14px;
+  border-bottom: var(--banner-border, none);
+  transition: background .35s, color .35s;
 }
 .gantt-title-text {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: .5px;
-  cursor: pointer;
-  padding: 4px 10px;
-  border-radius: 6px;
-  transition: background .15s;
-  text-align: center;
+  font-size: var(--title-size, 22px); font-weight: var(--title-weight, 800);
+  letter-spacing: var(--title-ls, .5px);
+  cursor: pointer; padding: 4px 10px; border-radius: 6px;
+  transition: background .15s; text-align: center;
+  text-transform: var(--title-transform, none);
 }
-.gantt-title-text:hover { background: rgba(255,255,255,.12); }
+.gantt-title-text:hover { background: var(--banner-hover, rgba(255,255,255,.12)); }
 .gantt-title-sub {
-  position: absolute;
-  right: 20px;
-  font-size: 12px;
-  opacity: .75;
-  background: rgba(255,255,255,.15);
-  border-radius: 20px;
-  padding: 3px 12px;
+  position: absolute; right: 20px; font-size: 12px; opacity: .75;
+  background: var(--banner-badge-bg); border-radius: 20px; padding: 3px 12px;
 }
 .granularity-badge {
-  position: absolute;
-  left: 20px;
-  font-size: 11px;
-  opacity: .8;
-  background: rgba(255,255,255,.15);
-  border-radius: 12px;
-  padding: 2px 10px;
-  font-weight: 600;
+  position: absolute; left: 20px; font-size: 11px; opacity: .8;
+  background: var(--banner-badge-bg); border-radius: 12px; padding: 2px 10px; font-weight: 600;
 }
 
 /* ── Gantt Header ── */
 .gantt-header {
-  display: flex;
-  position: sticky;
-  z-index: 20;
-  background: #fff;
-  border-bottom: 2px solid #dde0ec;
+  display: flex; position: sticky; z-index: 20;
+  background: var(--canvas-bg);
+  border-bottom: var(--header-border-w, 2px) var(--header-border-style, solid) var(--header-border);
+  transition: background .35s;
 }
 .gantt-corner {
-  position: sticky;
-  left: 0;
-  z-index: 30;
-  background: linear-gradient(160deg, #f0f3ff, #e6eaff);
-  border-right: 2px solid #dde0ec;
-  display: flex;
-  align-items: flex-end;
-  padding: 0 16px 10px;
-  font-weight: 800;
-  color: #4a5080;
-  font-size: 13px;
-  letter-spacing: .5px;
+  position: sticky; left: 0; z-index: 30;
+  background: var(--corner-bg);
+  border-right: var(--header-border-w, 2px) var(--header-border-style, solid) var(--header-border);
+  display: flex; align-items: flex-end;
+  padding: var(--corner-pad, 0 16px 10px);
+  font-weight: var(--corner-weight, 800);
+  color: var(--corner-fg);
+  font-size: var(--corner-size, 13px);
+  letter-spacing: var(--corner-ls, .5px);
   flex-shrink: 0;
+  text-transform: var(--corner-transform, none);
+  transition: background .35s, color .35s;
 }
 
 /* ── Timeline ── */
@@ -169,37 +158,44 @@ body {
 .h-groups { display: flex; }
 .h-group-cell {
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; color: #3a4080;
-  border-right: 2px dashed #c8cde8;
+  font-size: var(--hgroup-size, 13px); font-weight: var(--hgroup-weight, 700);
+  color: var(--hgroup-fg);
+  border-right: var(--hgroup-border-w, 2px) var(--hgroup-border-style, dashed) var(--hgroup-border);
   overflow: visible; white-space: nowrap;
   padding: 0 4px; min-width: 0; flex-shrink: 0;
+  transition: color .35s;
 }
-.h-group-cell:nth-child(odd)  { background: #eef1ff; }
-.h-group-cell:nth-child(even) { background: #e8f4fd; }
+.h-group-cell:nth-child(odd)  { background: var(--hgroup-odd); }
+.h-group-cell:nth-child(even) { background: var(--hgroup-even); }
 
-.h-cols { display: flex; background: #f7f8fc; border-bottom: 1px solid #e4e7f5; }
+.h-cols {
+  display: flex;
+  background: var(--hcol-bg);
+  border-bottom: 1px var(--hcol-border-style, solid) var(--hcol-border);
+}
 .h-col-cell {
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; color: #7a7ea8; border-right: 1px solid #eaecf8;
+  font-size: var(--hcol-size, 12px); color: var(--hcol-fg);
+  border-right: 1px var(--grid-style, solid) var(--hcol-divider);
   font-weight: 600; flex-shrink: 0; overflow: visible; white-space: nowrap;
 }
-.h-col-cell.weekend   { background: #f5f0ff; color: #9988cc; }
-.h-col-cell.today-col { background: #fff0f0; color: #d93025; font-weight: 800; font-size: 13px; }
+.h-col-cell.weekend   { background: var(--weekend-bg); color: var(--weekend-fg); }
+.h-col-cell.today-col { background: var(--today-col-bg); color: var(--today-col-fg); font-weight: 800; }
 
 /* ── Milestone Row ── */
 .h-milestones {
   position: relative;
-  background: linear-gradient(90deg, #fffbe8, #fff8f0 50%, #f0f8ff);
-  border-bottom: 1px solid #e8e0cc;
-  cursor: pointer;
+  background: var(--mile-row-bg);
+  border-bottom: 1px solid var(--mile-row-border);
+  cursor: pointer; transition: background .35s;
 }
 .h-mile-label {
   position: sticky; left: 0; z-index: 5;
   display: inline-flex; align-items: center; gap: 6px;
   padding: 0 14px; height: 100%;
-  font-size: 12px; font-weight: 700; color: #8a6800;
-  background: linear-gradient(90deg, #fff8dc, #fffbe8);
-  border-right: 1px solid #e8d8aa;
+  font-size: 12px; font-weight: 700; color: var(--mile-label-fg);
+  background: var(--mile-label-bg);
+  border-right: 1px solid var(--mile-row-border);
   white-space: nowrap;
 }
 .milestone-marker {
@@ -207,51 +203,65 @@ body {
   display: flex; flex-direction: column; align-items: center;
   cursor: pointer; z-index: 5;
   transform: translateX(-50%); padding-top: 4px;
+  transition: transform .2s;
 }
-.milestone-marker:hover .milestone-icon { transform: scale(1.2); }
-.milestone-icon { font-size: 18px; transition: transform .15s; filter: drop-shadow(0 1px 3px rgba(0,0,0,.2)); }
+.milestone-marker:hover { transform: translateX(-50%) scale(1.1); }
+.milestone-icon { font-size: 18px; transition: transform .2s; filter: drop-shadow(0 1px 3px rgba(0,0,0,.2)); }
 .milestone-label {
   font-size: 10px; font-weight: 700; margin-top: 1px;
   white-space: nowrap; max-width: 88px; overflow: hidden; text-overflow: ellipsis;
-  text-align: center; letter-spacing: .2px;
+  text-align: center;
 }
 
 /* ── Body ── */
 .gantt-body { position: relative; }
-.gantt-row { display: flex; border-bottom: 1px solid #eceef8; }
+.gantt-row {
+  display: flex;
+  border-bottom: 1px var(--grid-style, solid) var(--row-border);
+  transition: filter .15s;
+}
 .gantt-row:hover { filter: brightness(.97); }
 
 /* ── Row Label ── */
 .row-label {
   position: sticky; left: 0; z-index: 10;
-  border-right: 2px solid #dde0ec;
+  border-right: var(--header-border-w, 2px) var(--header-border-style, solid) var(--header-border);
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 10px 0 0; gap: 6px; flex-shrink: 0;
+  transition: background .35s;
 }
 .row-label-left { display: flex; align-items: center; gap: 0; flex: 1; min-width: 0; }
-.row-color-block { width: 6px; height: 100%; flex-shrink: 0; margin-right: 10px; }
+.row-color-block {
+  width: var(--color-block-w, 6px); height: 100%; flex-shrink: 0;
+  margin-right: var(--color-block-mr, 10px);
+  border-radius: var(--color-block-radius, 0);
+}
 .row-label-icon  { font-size: 17px; flex-shrink: 0; margin-right: 7px; }
 .row-label-text  {
-  font-weight: 700; font-size: 14px; white-space: nowrap;
+  font-weight: 700; font-size: var(--row-label-size, 14px); white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis;
   cursor: pointer; padding: 2px 4px; border-radius: 4px;
-  transition: background .12s; flex: 1;
+  transition: background .15s, transform .15s; flex: 1;
 }
-.row-label-text:hover { background: rgba(0,0,0,.05); }
+.row-label-text:hover { background: rgba(0,0,0,.06); transform: translateX(2px); }
 .row-actions { display: none; gap: 3px; flex-shrink: 0; }
 .gantt-row:hover .row-actions { display: flex; }
 .row-action-btn {
   font-size: 14px; cursor: pointer; padding: 4px 5px;
-  border-radius: 5px; opacity: .6; transition: opacity .12s, background .12s;
+  border-radius: 5px; opacity: .6; transition: all .15s;
 }
-.row-action-btn:hover { opacity: 1; background: rgba(0,0,0,.07); }
+.row-action-btn:hover { opacity: 1; background: rgba(0,0,0,.07); transform: scale(1.15); }
 
 /* ── Row Grid ── */
 .row-grid { position: relative; flex-shrink: 0; }
 .grid-lines { display: flex; height: 100%; }
-.grid-cell  { height: 100%; border-right: 1px solid #eceef8; flex-shrink: 0; }
-.grid-cell.weekend  { background: rgba(150,120,220,.05); }
-.grid-cell.today-col { background: rgba(217,48,37,.04); }
+.grid-cell {
+  height: 100%;
+  border-right: 1px var(--grid-style, solid) var(--grid-line);
+  flex-shrink: 0; transition: background .35s;
+}
+.grid-cell.weekend  { background: var(--grid-weekend); }
+.grid-cell.today-col { background: var(--grid-today); }
 
 /* ── Row Resize Handle ── */
 .row-resize-handle {
@@ -260,40 +270,99 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 .row-resize-handle::after {
-  content: '';
-  width: 36px; height: 3px; border-radius: 2px;
-  background: #c8cde8; opacity: 0; transition: opacity .15s;
+  content: ''; width: 36px; height: 3px; border-radius: 2px;
+  background: var(--resize-handle); opacity: 0; transition: opacity .15s;
 }
 .gantt-row:hover .row-resize-handle::after { opacity: 1; }
-.row-resize-handle:hover::after { background: #4a7cf8; opacity: 1 !important; }
+.row-resize-handle:hover::after { background: var(--accent); opacity: 1 !important; }
+
+/* ── Canvas Resize Handles ── */
+.canvas-resize-right {
+  position: absolute; right: -4px; top: 0; width: 8px; height: 100%;
+  cursor: col-resize; z-index: 40;
+}
+.canvas-resize-right::after {
+  content: ''; position: absolute; right: 3px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 36px; border-radius: 2px;
+  background: var(--resize-handle, #c8cde8); opacity: 0; transition: opacity .15s;
+}
+.canvas-resize-right:hover::after,
+.canvas-resize-right.active::after { opacity: 1; background: var(--accent); }
+
+.canvas-resize-bottom {
+  position: absolute; bottom: -4px; left: 0; height: 8px; width: 100%;
+  cursor: row-resize; z-index: 40;
+}
+.canvas-resize-bottom::after {
+  content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+  height: 3px; width: 36px; border-radius: 2px;
+  background: var(--resize-handle, #c8cde8); opacity: 0; transition: opacity .15s;
+}
+.canvas-resize-bottom:hover::after,
+.canvas-resize-bottom.active::after { opacity: 1; background: var(--accent); }
+
+.canvas-resize-corner {
+  position: absolute; right: -4px; bottom: -4px; width: 14px; height: 14px;
+  cursor: nwse-resize; z-index: 41;
+}
+.canvas-resize-corner::after {
+  content: ''; position: absolute; right: 2px; bottom: 2px;
+  width: 8px; height: 8px; border-right: 2.5px solid var(--resize-handle, #c8cde8);
+  border-bottom: 2.5px solid var(--resize-handle, #c8cde8);
+  border-radius: 0 0 2px 0; opacity: 0; transition: opacity .15s;
+}
+.canvas-resize-corner:hover::after,
+.canvas-resize-corner.active::after { opacity: 1; border-color: var(--accent); }
+
+.canvas-size-tip {
+  position: absolute; bottom: -28px; right: 0;
+  font-size: 11px; color: var(--toolbar-label, #888); background: var(--canvas-bg, #fff);
+  padding: 2px 8px; border-radius: 4px; white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,.1); pointer-events: none;
+  opacity: 0; transition: opacity .15s;
+}
+.canvas-size-tip.visible { opacity: 1; }
 
 /* ── Task Bars ── */
 .task-bar {
   position: absolute;
-  border-radius: 9px;
+  border-radius: var(--bar-radius, 9px);
   display: flex; align-items: center;
-  padding: 0 10px 0 14px; cursor: pointer;
+  padding: var(--bar-pad, 0 10px 0 14px); cursor: pointer;
   user-select: none; overflow: hidden; gap: 4px; z-index: 5;
-  box-shadow: 0 2px 6px rgba(0,0,0,.08);
-  transition: filter .12s, box-shadow .12s, transform .1s;
+  box-shadow: var(--bar-shadow);
+  transition: filter .15s, box-shadow .2s, transform .2s;
 }
-.task-bar:hover { filter: brightness(.92); box-shadow: 0 4px 14px rgba(0,0,0,.14); transform: translateY(-1px); }
-.task-color-stripe { position: absolute; left:0; top:0; bottom:0; width:5px; border-radius:9px 0 0 9px; }
-.task-label { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; padding-left: 4px; }
-.task-delete { font-size: 14px; opacity: 0; flex-shrink: 0; transition: opacity .12s; padding: 0 2px; }
+.task-bar:hover {
+  filter: brightness(.9) saturate(1.1);
+  box-shadow: var(--bar-shadow-hover);
+  transform: translateY(-2px);
+}
+.task-color-stripe {
+  position: absolute; left: 0; top: var(--stripe-top, 0); bottom: var(--stripe-bottom, 0);
+  width: var(--stripe-w, 5px);
+  border-radius: var(--stripe-radius, var(--bar-radius, 9px) 0 0 var(--bar-radius, 9px));
+}
+.task-label {
+  font-size: var(--bar-font-size, 13px); font-weight: var(--bar-font-weight, 700);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
+  padding-left: var(--bar-label-pl, 4px);
+  letter-spacing: var(--bar-ls, 0);
+}
+.task-delete { font-size: 14px; opacity: 0; flex-shrink: 0; transition: opacity .15s, transform .15s; padding: 0 2px; }
 .task-bar:hover .task-delete { opacity: .6; }
-.task-delete:hover { opacity: 1 !important; }
+.task-delete:hover { opacity: 1 !important; transform: scale(1.2); }
 
 /* ── Today Line ── */
 .today-line {
-  position: absolute; width: 2px; top: 0;
-  background: linear-gradient(180deg, #d93025, rgba(217,48,37,.25));
+  position: absolute; width: var(--today-line-w, 2px); top: 0;
+  background: var(--today-line-bg);
   pointer-events: none; z-index: 15;
 }
 .today-lbl {
   position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-  font-size: 9px; font-weight: 800; color: #d93025;
-  background: #fff; padding: 1px 4px; border-radius: 3px; white-space: nowrap;
+  font-size: 9px; font-weight: 800; color: var(--today-line-fg);
+  background: var(--canvas-bg); padding: 1px 4px; border-radius: 3px; white-space: nowrap;
   box-shadow: 0 1px 4px rgba(0,0,0,.15);
 }
 
@@ -303,8 +372,22 @@ body {
   border-left: 2px dashed; opacity: .28; pointer-events: none; z-index: 3;
 }
 
-/* ── Empty ── */
-.empty-state { padding: 60px 24px; text-align: center; color: #bbb; font-size: 15px; }
+.empty-state { padding: 60px 24px; text-align: center; color: var(--empty-fg); font-size: 15px; }
+
+/* ── Tooltip ── */
+.gantt-tooltip {
+  position: fixed; z-index: 9999;
+  background: rgba(30,30,50,.88); color: #fff;
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 12px; font-weight: 600;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  backdrop-filter: blur(6px);
+  transform: translateY(-8px); opacity: 0;
+  transition: opacity .15s, transform .15s;
+  max-width: 260px; white-space: nowrap;
+}
+.gantt-tooltip.visible { opacity: 1; transform: translateY(0); }
 
 /* ── Modal ── */
 .modal-overlay {
@@ -314,30 +397,99 @@ body {
 }
 .modal-overlay.hidden { display: none; }
 .modal-box {
-  background: #fff; border-radius: 14px; padding: 26px 26px 22px;
+  background: var(--canvas-bg); border-radius: var(--canvas-radius, 14px); padding: 26px;
   min-width: 360px; max-width: 500px;
   box-shadow: 0 16px 56px rgba(0,0,0,.22);
   animation: mIn .17s ease;
+  color: var(--body-fg);
 }
 @keyframes mIn { from { transform: scale(.93); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.modal-title { font-size: 17px; font-weight: 800; color: #1a1a2e; margin-bottom: 20px; }
+.modal-title { font-size: 17px; font-weight: 800; margin-bottom: 20px; }
 .modal-field { margin-bottom: 15px; }
-.modal-field label { display: block; font-size: 12px; font-weight: 700; color: #777; margin-bottom: 6px; letter-spacing: .3px; }
+.modal-field label { display: block; font-size: 12px; font-weight: 700; color: var(--modal-label); margin-bottom: 6px; letter-spacing: .3px; }
 .modal-input {
-  width: 100%; border: 1.5px solid #d0d4e8; border-radius: 8px;
-  padding: 9px 12px; font-size: 14px; color: #222; outline: none;
+  width: 100%; border: var(--input-border-w, 1.5px) solid var(--modal-input-border);
+  border-radius: var(--input-radius, 8px);
+  padding: 9px 12px; font-size: 14px; color: var(--body-fg); outline: none;
   transition: border-color .15s; font-family: inherit;
+  background: var(--modal-input-bg);
 }
-.modal-input:focus { border-color: #4a7cf8; box-shadow: 0 0 0 3px rgba(74,124,248,.12); }
+.modal-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,124,248,.12); }
 .modal-row { display: flex; gap: 12px; }
 .modal-row .modal-field { flex: 1; margin-bottom: 0; }
-.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 22px; padding-top: 16px; border-top: 1px solid #eee; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--modal-divider); }
 .modal-actions .btn-danger { margin-right: auto; }
 .color-opts { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 4px; }
-.color-opt { width: 32px; height: 32px; border-radius: 8px; cursor: pointer; position: relative; transition: transform .12s, box-shadow .12s; }
+.color-opt { width: 32px; height: 32px; border-radius: var(--input-radius, 8px); cursor: pointer; position: relative; transition: transform .15s, box-shadow .15s; }
 .color-opt:hover { transform: scale(1.15); }
 .color-opt.selected::after { content:'✓'; position: absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; color:rgba(0,0,0,.45); }
-.color-opt.selected { box-shadow: 0 0 0 3px #4a7cf8; transform: scale(1.1); }
+.color-opt.selected { box-shadow: 0 0 0 3px var(--accent); transform: scale(1.1); }
+
+/* ═══════════════════════════════════════════════
+   THEME-SPECIFIC STRUCTURAL OVERRIDES
+   ═══════════════════════════════════════════════ */
+
+/* ── 莫兰迪：柔和圆润、标题融入表头、纯色任务条、极简网格 ── */
+/* 1. 隐藏 banner，标题融入 corner */
+[data-theme="morandi"] .gantt-title-banner { display: none; }
+[data-theme="morandi"] .gantt-header { top: 0 !important; }
+[data-theme="morandi"] .gantt-corner {
+  flex-direction: column; align-items: flex-start; justify-content: center;
+  padding: 8px 14px; gap: 2px;
+}
+[data-theme="morandi"] .gantt-corner .corner-title {
+  font-size: 15px; font-weight: 700; color: var(--corner-fg);
+  letter-spacing: .3px; line-height: 1.2;
+}
+[data-theme="morandi"] .gantt-corner .corner-sub {
+  font-size: 10px; font-weight: 500; color: var(--hcol-fg); opacity: .7;
+}
+/* 2. 任务条：无边框纯色块 */
+[data-theme="morandi"] .task-bar { border: none !important; }
+[data-theme="morandi"] .task-bar:hover { filter: brightness(.92); transform: translateY(-1px); }
+/* 3. 网格：去横线，竖线极细 */
+[data-theme="morandi"] .gantt-row { border-bottom: none; }
+[data-theme="morandi"] .gantt-row:hover { filter: none; background: rgba(0,0,0,.012); }
+[data-theme="morandi"] .grid-cell { border-right-color: transparent; }
+[data-theme="morandi"] .grid-cell.week-start,
+[data-theme="morandi"] .grid-cell.week-end { border-right: 1px solid rgba(0,0,0,.06); }
+[data-theme="morandi"] .h-col-cell { border-right-color: transparent; }
+[data-theme="morandi"] .h-col-cell.week-start,
+[data-theme="morandi"] .h-col-cell.week-end { border-right: 1px solid rgba(0,0,0,.06); }
+[data-theme="morandi"] .h-group-cell { border-right: 1px solid rgba(0,0,0,.08); }
+/* 4. 行标签：小圆点替代色条 */
+[data-theme="morandi"] .row-color-block {
+  width: 8px !important; height: 8px !important;
+  border-radius: 50% !important; margin: 0 10px 0 10px !important;
+  align-self: center;
+}
+[data-theme="morandi"] .row-label-text:hover { transform: none; background: rgba(0,0,0,.04); }
+
+/* ── 暖色调：温暖质感，强调色块，虚线网格 ── */
+[data-theme="warm"] .grid-cell { border-right-style: dotted; }
+[data-theme="warm"] .h-col-cell { border-right-style: dotted; }
+[data-theme="warm"] .h-group-cell { border-right-style: solid; border-right-width: 1.5px; }
+[data-theme="warm"] .task-bar { border-width: 2px !important; }
+[data-theme="warm"] .task-bar:hover { transform: translateY(-2px) scale(1.01); }
+[data-theme="warm"] .row-label-text:hover { transform: translateX(3px); }
+[data-theme="warm"] .gantt-canvas { border: 2px solid rgba(160,100,40,.12); }
+[data-theme="warm"] .gantt-title-text { font-style: italic; }
+
+/* ── 简约高级：极简线条，无装饰，几何感 ── */
+[data-theme="minimal"] .task-color-stripe { display: none; }
+[data-theme="minimal"] .row-color-block { width: 3px !important; border-radius: 0 !important; }
+[data-theme="minimal"] .h-group-cell { border-right-style: solid; border-right-width: 1px; }
+[data-theme="minimal"] .h-group-cell:nth-child(odd),
+[data-theme="minimal"] .h-group-cell:nth-child(even) { background: transparent; }
+[data-theme="minimal"] .gantt-row:hover { filter: none; background: rgba(0,0,0,.015); }
+[data-theme="minimal"] .task-bar { border-width: 1px !important; }
+[data-theme="minimal"] .task-bar:hover { transform: translateY(-1px); filter: brightness(.95); }
+[data-theme="minimal"] .milestone-vline { border-left-style: solid; opacity: .15; }
+[data-theme="minimal"] .row-label-text:hover { transform: none; background: rgba(0,0,0,.04); }
+[data-theme="minimal"] .gantt-title-sub,
+[data-theme="minimal"] .granularity-badge { border-radius: 4px; }
+[data-theme="minimal"] .toolbar { box-shadow: none; border-bottom: 1px solid rgba(255,255,255,.08); }
+[data-theme="minimal"] .btn { text-transform: uppercase; }
 </style>
 </head>
 <body>
@@ -350,9 +502,10 @@ body {
 <div id="modal-overlay" class="modal-overlay hidden">
   <div id="modal-box" class="modal-box"></div>
 </div>
+<div class="gantt-tooltip" id="gantt-tooltip"></div>
 
 <script>
-// ── Fixed Layout Constants ─────────────────────────────────────────────────
+// ── Layout Constants ─────────────────────────────────────────────────────
 const LABEL_W  = 170;
 const TITLE_H  = 58;
 const H_GROUP  = 34;
@@ -363,140 +516,346 @@ const TASK_H    = 42;
 const MIN_ROW_H = 36;
 const DEF_ROW_H = 60;
 
-// ── Colors ────────────────────────────────────────────────────────────────
-const COLORS = [
-  { key:'purple', bg:'#ede7f6', fg:'#7e57c2', border:'#b39ddb' },
-  { key:'blue',   bg:'#e3f2fd', fg:'#1565c0', border:'#90caf9' },
-  { key:'green',  bg:'#e8f5e9', fg:'#2e7d32', border:'#a5d6a7' },
-  { key:'orange', bg:'#fff3e0', fg:'#e65100', border:'#ffcc80' },
-  { key:'red',    bg:'#ffebee', fg:'#c62828', border:'#ef9a9a' },
-  { key:'pink',   bg:'#fce4ec', fg:'#ad1457', border:'#f48fb1' },
-  { key:'teal',   bg:'#e0f2f1', fg:'#00695c', border:'#80cbc4' },
-  { key:'indigo', bg:'#e8eaf6', fg:'#283593', border:'#9fa8da' },
-];
+// ══════════════════════════════════════════════════════════════════════════
+// THEME DEFINITIONS — colors + structural layout variables
+// ══════════════════════════════════════════════════════════════════════════
+const THEMES = {
+  /* ── 经典商务：蓝白色系、清晰边框、标准网格 ── */
+  classic: {
+    key:'classic', name:'经典商务',
+    vars: {
+      '--font': '"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif',
+      '--body-bg':'#b8bcc8', '--body-fg':'#1a1a2e',
+      '--toolbar-bg':'#2c2f3f', '--toolbar-fg':'#fff',
+      '--toolbar-hover':'rgba(255,255,255,.1)', '--toolbar-sep':'rgba(255,255,255,.2)',
+      '--toolbar-label':'#aaa',
+      '--toolbar-input-border':'rgba(255,255,255,.2)', '--toolbar-input-bg':'rgba(255,255,255,.1)',
+      '--toolbar-picker-filter':'invert(1)', '--toolbar-shadow':'0 2px 8px rgba(0,0,0,.25)',
+      '--toolbar-border':'none', '--toolbar-pad':'9px 20px',
+      '--accent':'#4a7cf8', '--btn-primary-fg':'#fff',
+      '--btn-outline-bg':'rgba(255,255,255,.12)', '--btn-outline-fg':'#dde',
+      '--btn-outline-border':'rgba(255,255,255,.2)', '--btn-outline-hover':'rgba(255,255,255,.2)',
+      '--btn-pad':'7px 15px', '--btn-radius':'8px', '--btn-ls':'0',
+      '--input-border-w':'1.5px', '--input-radius':'7px',
+      '--canvas-bg':'#fff', '--canvas-radius':'14px',
+      '--canvas-shadow':'0 12px 48px rgba(0,0,0,.28), 0 2px 8px rgba(0,0,0,.12)',
+      '--canvas-border':'none', '--stage-pad':'28px 32px 40px',
+      '--banner-bg':'linear-gradient(135deg,#1a73e8,#0d47a1)',
+      '--banner-fg':'#fff', '--banner-hover':'rgba(255,255,255,.12)',
+      '--banner-badge-bg':'rgba(255,255,255,.15)', '--banner-h':'58px',
+      '--banner-border':'none',
+      '--title-size':'22px', '--title-weight':'800', '--title-ls':'.5px', '--title-transform':'none',
+      '--header-border':'#dde0ec', '--header-border-w':'2px', '--header-border-style':'solid',
+      '--corner-bg':'linear-gradient(160deg,#f0f3ff,#e6eaff)', '--corner-fg':'#4a5080',
+      '--corner-pad':'0 16px 10px', '--corner-weight':'800', '--corner-size':'13px',
+      '--corner-ls':'.5px', '--corner-transform':'none',
+      '--hgroup-fg':'#3a4080', '--hgroup-border':'#c8cde8',
+      '--hgroup-border-w':'2px', '--hgroup-border-style':'dashed',
+      '--hgroup-odd':'#eef1ff', '--hgroup-even':'#e8f4fd',
+      '--hgroup-size':'13px', '--hgroup-weight':'700',
+      '--hcol-bg':'#f7f8fc', '--hcol-border':'#e4e7f5', '--hcol-border-style':'solid',
+      '--hcol-fg':'#7a7ea8', '--hcol-divider':'#eaecf8', '--hcol-size':'12px',
+      '--grid-style':'solid', '--grid-line':'#eceef8',
+      '--grid-weekend':'rgba(150,120,220,.05)', '--grid-today':'rgba(217,48,37,.04)',
+      '--weekend-bg':'#f5f0ff', '--weekend-fg':'#9988cc',
+      '--today-col-bg':'#fff0f0', '--today-col-fg':'#d93025',
+      '--mile-row-bg':'linear-gradient(90deg,#fffbe8,#fff8f0 50%,#f0f8ff)',
+      '--mile-row-border':'#e8e0cc', '--mile-label-fg':'#8a6800',
+      '--mile-label-bg':'linear-gradient(90deg,#fff8dc,#fffbe8)',
+      '--row-border':'#eceef8', '--resize-handle':'#c8cde8',
+      '--color-block-w':'6px', '--color-block-mr':'10px', '--color-block-radius':'0',
+      '--row-label-size':'14px',
+      '--bar-radius':'9px', '--bar-pad':'0 10px 0 14px',
+      '--bar-shadow':'0 2px 6px rgba(0,0,0,.08)', '--bar-shadow-hover':'0 6px 20px rgba(0,0,0,.18)',
+      '--bar-font-size':'13px', '--bar-font-weight':'700', '--bar-label-pl':'4px', '--bar-ls':'0',
+      '--stripe-w':'5px', '--stripe-top':'0', '--stripe-bottom':'0',
+      '--stripe-radius':'9px 0 0 9px',
+      '--today-line-bg':'linear-gradient(180deg,#d93025,rgba(217,48,37,.25))',
+      '--today-line-fg':'#d93025', '--today-line-w':'2px',
+      '--empty-fg':'#bbb',
+      '--modal-label':'#777', '--modal-input-border':'#d0d4e8',
+      '--modal-input-bg':'#fff', '--modal-divider':'#eee',
+    },
+    colors: [
+      { key:'purple', bg:'#ede7f6', fg:'#7e57c2', border:'#b39ddb' },
+      { key:'blue',   bg:'#e3f2fd', fg:'#1565c0', border:'#90caf9' },
+      { key:'green',  bg:'#e8f5e9', fg:'#2e7d32', border:'#a5d6a7' },
+      { key:'orange', bg:'#fff3e0', fg:'#e65100', border:'#ffcc80' },
+      { key:'red',    bg:'#ffebee', fg:'#c62828', border:'#ef9a9a' },
+      { key:'pink',   bg:'#fce4ec', fg:'#ad1457', border:'#f48fb1' },
+      { key:'teal',   bg:'#e0f2f1', fg:'#00695c', border:'#80cbc4' },
+      { key:'indigo', bg:'#e8eaf6', fg:'#283593', border:'#9fa8da' },
+    ],
+  },
+
+  /* ── 莫兰迪：低饱和、柔和圆角、轻盈边线 ── */
+  morandi: {
+    key:'morandi', name:'莫兰迪',
+    vars: {
+      '--font': '"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif',
+      '--body-bg':'#d5d0ca', '--body-fg':'#3e3a36',
+      '--toolbar-bg':'#5c5650', '--toolbar-fg':'#f0ebe5',
+      '--toolbar-hover':'rgba(255,255,255,.1)', '--toolbar-sep':'rgba(255,255,255,.18)',
+      '--toolbar-label':'#c4bdb5',
+      '--toolbar-input-border':'rgba(255,255,255,.18)', '--toolbar-input-bg':'rgba(255,255,255,.08)',
+      '--toolbar-picker-filter':'invert(1)',
+      '--toolbar-shadow':'0 1px 4px rgba(0,0,0,.12)', '--toolbar-border':'none',
+      '--toolbar-pad':'10px 24px',
+      '--accent':'#8e7e72', '--btn-primary-fg':'#f5f0eb',
+      '--btn-outline-bg':'rgba(255,255,255,.1)', '--btn-outline-fg':'#ebe5dd',
+      '--btn-outline-border':'rgba(255,255,255,.18)', '--btn-outline-hover':'rgba(255,255,255,.18)',
+      '--btn-pad':'8px 18px', '--btn-radius':'20px', '--btn-ls':'.3px',
+      '--input-border-w':'1px', '--input-radius':'10px',
+      '--canvas-bg':'#f5f0eb', '--canvas-radius':'18px',
+      '--canvas-shadow':'0 10px 40px rgba(80,60,40,.15), 0 2px 8px rgba(80,60,40,.06)',
+      '--canvas-border':'none', '--stage-pad':'32px 36px 44px',
+      '--banner-bg':'linear-gradient(135deg,#8e7e72,#6b5e54)',
+      '--banner-fg':'#f5f0eb', '--banner-hover':'rgba(255,255,255,.1)',
+      '--banner-badge-bg':'rgba(255,255,255,.12)', '--banner-h':'54px',
+      '--banner-border':'none',
+      '--title-size':'20px', '--title-weight':'700', '--title-ls':'1px', '--title-transform':'none',
+      '--header-border':'#d4ccc4', '--header-border-w':'1px', '--header-border-style':'solid',
+      '--corner-bg':'linear-gradient(160deg,#ebe5dd,#e3dcd4)', '--corner-fg':'#6b5e54',
+      '--corner-pad':'0 18px 10px', '--corner-weight':'700', '--corner-size':'12px',
+      '--corner-ls':'1px', '--corner-transform':'none',
+      '--hgroup-fg':'#6b5e54', '--hgroup-border':'#d4ccc4',
+      '--hgroup-border-w':'1px', '--hgroup-border-style':'solid',
+      '--hgroup-odd':'#ebe5dd', '--hgroup-even':'#e5dfd8',
+      '--hgroup-size':'12px', '--hgroup-weight':'600',
+      '--hcol-bg':'#f0eae3', '--hcol-border':'#ddd6cd', '--hcol-border-style':'solid',
+      '--hcol-fg':'#9a8e82', '--hcol-divider':'#e5dfd8', '--hcol-size':'11px',
+      '--grid-style':'solid', '--grid-line':'#e8e2da',
+      '--grid-weekend':'rgba(160,140,120,.04)', '--grid-today':'rgba(180,80,60,.04)',
+      '--weekend-bg':'#ede6de', '--weekend-fg':'#a0927e',
+      '--today-col-bg':'#f0e0d8', '--today-col-fg':'#a05040',
+      '--mile-row-bg':'linear-gradient(90deg,#f0e8dc,#ede4d8 50%,#e8e2dc)',
+      '--mile-row-border':'#d8cfc4', '--mile-label-fg':'#7a6a52',
+      '--mile-label-bg':'linear-gradient(90deg,#f0e8dc,#ede4d8)',
+      '--row-border':'#e0d8d0', '--resize-handle':'#ccc5bc',
+      '--color-block-w':'4px', '--color-block-mr':'12px', '--color-block-radius':'2px',
+      '--row-label-size':'13px',
+      '--bar-radius':'14px', '--bar-pad':'0 12px 0 10px',
+      '--bar-shadow':'0 2px 8px rgba(80,60,40,.07)', '--bar-shadow-hover':'0 4px 14px rgba(80,60,40,.14)',
+      '--bar-font-size':'12px', '--bar-font-weight':'600', '--bar-label-pl':'8px', '--bar-ls':'.2px',
+      '--stripe-w':'0', '--stripe-top':'0', '--stripe-bottom':'0',
+      '--stripe-radius':'0',
+      '--today-line-bg':'linear-gradient(180deg,#a05040,rgba(160,80,64,.15))',
+      '--today-line-fg':'#a05040', '--today-line-w':'1.5px',
+      '--empty-fg':'#b5a89c',
+      '--modal-label':'#8a7e72', '--modal-input-border':'#ccc5bc',
+      '--modal-input-bg':'#f5f0eb', '--modal-divider':'#ddd6cd',
+    },
+    colors: [
+      { key:'dusty-rose',  bg:'#e8d5d0', fg:'#8b5e55', border:'#d4b0a8' },
+      { key:'sage',        bg:'#d5ddd0', fg:'#5a7050', border:'#b0c4a0' },
+      { key:'slate-blue',  bg:'#d0d5dd', fg:'#556270', border:'#a8b5c5' },
+      { key:'taupe',       bg:'#ddd5cc', fg:'#6b5e50', border:'#c4b5a5' },
+      { key:'mauve',       bg:'#ddd0d8', fg:'#705060', border:'#c0a8b5' },
+      { key:'olive',       bg:'#d8dcc8', fg:'#606840', border:'#b8c0a0' },
+      { key:'clay',        bg:'#e0d0c4', fg:'#7a5a40', border:'#ccb098' },
+      { key:'steel',       bg:'#ccd2d8', fg:'#4a5868', border:'#a0b0c0' },
+    ],
+  },
+
+  /* ── 暖色调：温暖质感、厚重色块、点线网格 ── */
+  warm: {
+    key:'warm', name:'暖色调',
+    vars: {
+      '--font': '"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif',
+      '--body-bg':'#d4c4b0', '--body-fg':'#3a2e24',
+      '--toolbar-bg':'#5a4030', '--toolbar-fg':'#f5ece0',
+      '--toolbar-hover':'rgba(255,255,255,.1)', '--toolbar-sep':'rgba(255,240,220,.2)',
+      '--toolbar-label':'#c4a888',
+      '--toolbar-input-border':'rgba(255,240,220,.22)', '--toolbar-input-bg':'rgba(255,240,220,.1)',
+      '--toolbar-picker-filter':'invert(1)',
+      '--toolbar-shadow':'0 2px 8px rgba(80,40,10,.2)', '--toolbar-border':'none',
+      '--toolbar-pad':'10px 22px',
+      '--accent':'#c07040', '--btn-primary-fg':'#fff',
+      '--btn-outline-bg':'rgba(255,240,220,.1)', '--btn-outline-fg':'#f0e0cc',
+      '--btn-outline-border':'rgba(255,240,220,.2)', '--btn-outline-hover':'rgba(255,240,220,.2)',
+      '--btn-pad':'8px 16px', '--btn-radius':'10px', '--btn-ls':'0',
+      '--input-border-w':'1.5px', '--input-radius':'8px',
+      '--canvas-bg':'#faf5ee', '--canvas-radius':'12px',
+      '--canvas-shadow':'0 10px 40px rgba(100,60,20,.18), 0 2px 8px rgba(100,60,20,.06)',
+      '--canvas-border':'2px solid rgba(160,100,40,.12)', '--stage-pad':'28px 32px 40px',
+      '--banner-bg':'linear-gradient(135deg,#c07040,#8a4a28)',
+      '--banner-fg':'#faf5ee', '--banner-hover':'rgba(255,255,255,.1)',
+      '--banner-badge-bg':'rgba(255,255,255,.12)', '--banner-h':'62px',
+      '--banner-border':'2px solid rgba(160,100,40,.15)',
+      '--title-size':'23px', '--title-weight':'800', '--title-ls':'.5px', '--title-transform':'none',
+      '--header-border':'#e0d0bc', '--header-border-w':'2px', '--header-border-style':'solid',
+      '--corner-bg':'linear-gradient(160deg,#f5e8d5,#eddcc4)', '--corner-fg':'#6a4a30',
+      '--corner-pad':'0 16px 10px', '--corner-weight':'800', '--corner-size':'13px',
+      '--corner-ls':'.5px', '--corner-transform':'none',
+      '--hgroup-fg':'#6a4a30', '--hgroup-border':'#d8c4a8',
+      '--hgroup-border-w':'1.5px', '--hgroup-border-style':'solid',
+      '--hgroup-odd':'#f5e8d5', '--hgroup-even':'#f0e0cc',
+      '--hgroup-size':'13px', '--hgroup-weight':'700',
+      '--hcol-bg':'#f8f0e4', '--hcol-border':'#e8d8c0', '--hcol-border-style':'solid',
+      '--hcol-fg':'#a08060', '--hcol-divider':'#f0e0cc', '--hcol-size':'12px',
+      '--grid-style':'dotted', '--grid-line':'#e0d0b8',
+      '--grid-weekend':'rgba(180,120,60,.05)', '--grid-today':'rgba(200,60,20,.04)',
+      '--weekend-bg':'#f5ead8', '--weekend-fg':'#a08060',
+      '--today-col-bg':'#f8e0d0', '--today-col-fg':'#b04020',
+      '--mile-row-bg':'linear-gradient(90deg,#faf0d8,#f8e8cc 50%,#f0e4d0)',
+      '--mile-row-border':'#e0d0b0', '--mile-label-fg':'#7a5820',
+      '--mile-label-bg':'linear-gradient(90deg,#faf0d8,#f8e8cc)',
+      '--row-border':'#ead8c4', '--resize-handle':'#d8c4a8',
+      '--color-block-w':'8px', '--color-block-mr':'10px', '--color-block-radius':'0 4px 4px 0',
+      '--row-label-size':'14px',
+      '--bar-radius':'8px', '--bar-pad':'0 10px 0 16px',
+      '--bar-shadow':'0 3px 10px rgba(100,60,20,.1)', '--bar-shadow-hover':'0 6px 22px rgba(100,60,20,.2)',
+      '--bar-font-size':'13px', '--bar-font-weight':'700', '--bar-label-pl':'4px', '--bar-ls':'0',
+      '--stripe-w':'7px', '--stripe-top':'0', '--stripe-bottom':'0',
+      '--stripe-radius':'8px 0 0 8px',
+      '--today-line-bg':'linear-gradient(180deg,#b04020,rgba(176,64,32,.2))',
+      '--today-line-fg':'#b04020', '--today-line-w':'2.5px',
+      '--empty-fg':'#b8a088',
+      '--modal-label':'#8a7060', '--modal-input-border':'#d8c4a8',
+      '--modal-input-bg':'#faf5ee', '--modal-divider':'#e8d8c0',
+    },
+    colors: [
+      { key:'amber',    bg:'#fde8c8', fg:'#a06010', border:'#f0c880' },
+      { key:'terra',    bg:'#f0d8c8', fg:'#8a4020', border:'#dca888' },
+      { key:'olive',    bg:'#e0e0c0', fg:'#5a6020', border:'#c0c098' },
+      { key:'rust',     bg:'#f0d0c0', fg:'#903020', border:'#d8a090' },
+      { key:'gold',     bg:'#f8ecc8', fg:'#886810', border:'#e8d090' },
+      { key:'sage',     bg:'#d8e0c8', fg:'#4a6030', border:'#b0c098' },
+      { key:'copper',   bg:'#e8d0b8', fg:'#7a4820', border:'#ccaa88' },
+      { key:'mahogany', bg:'#e0c8c0', fg:'#6a3028', border:'#c8a098' },
+    ],
+  },
+
+  /* ── 简约高级：极简、几何、hairline、无装饰 ── */
+  minimal: {
+    key:'minimal', name:'简约高级',
+    vars: {
+      '--font': '"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif',
+      '--body-bg':'#e8e8e8', '--body-fg':'#1a1a1a',
+      '--toolbar-bg':'#1a1a1a', '--toolbar-fg':'#f0f0f0',
+      '--toolbar-hover':'rgba(255,255,255,.08)', '--toolbar-sep':'rgba(255,255,255,.12)',
+      '--toolbar-label':'#888',
+      '--toolbar-input-border':'rgba(255,255,255,.12)', '--toolbar-input-bg':'rgba(255,255,255,.05)',
+      '--toolbar-picker-filter':'invert(1)',
+      '--toolbar-shadow':'none', '--toolbar-border':'1px solid rgba(255,255,255,.08)',
+      '--toolbar-pad':'8px 24px',
+      '--accent':'#1a1a1a', '--btn-primary-fg':'#fff',
+      '--btn-outline-bg':'rgba(255,255,255,.06)', '--btn-outline-fg':'#ccc',
+      '--btn-outline-border':'rgba(255,255,255,.12)', '--btn-outline-hover':'rgba(255,255,255,.12)',
+      '--btn-pad':'6px 14px', '--btn-radius':'4px', '--btn-ls':'.8px',
+      '--input-border-w':'1px', '--input-radius':'4px',
+      '--canvas-bg':'#ffffff', '--canvas-radius':'4px',
+      '--canvas-shadow':'0 4px 20px rgba(0,0,0,.08)',
+      '--canvas-border':'1px solid #e0e0e0', '--stage-pad':'24px 28px 36px',
+      '--banner-bg':'#1a1a1a',
+      '--banner-fg':'#fff', '--banner-hover':'rgba(255,255,255,.08)',
+      '--banner-badge-bg':'rgba(255,255,255,.08)', '--banner-h':'50px',
+      '--banner-border':'none',
+      '--title-size':'18px', '--title-weight':'600', '--title-ls':'2px', '--title-transform':'uppercase',
+      '--header-border':'#e0e0e0', '--header-border-w':'1px', '--header-border-style':'solid',
+      '--corner-bg':'#fafafa', '--corner-fg':'#666',
+      '--corner-pad':'0 16px 8px', '--corner-weight':'600', '--corner-size':'11px',
+      '--corner-ls':'1.5px', '--corner-transform':'uppercase',
+      '--hgroup-fg':'#555', '--hgroup-border':'#e0e0e0',
+      '--hgroup-border-w':'1px', '--hgroup-border-style':'solid',
+      '--hgroup-odd':'transparent', '--hgroup-even':'transparent',
+      '--hgroup-size':'11px', '--hgroup-weight':'600',
+      '--hcol-bg':'#fafafa', '--hcol-border':'#eee', '--hcol-border-style':'solid',
+      '--hcol-fg':'#999', '--hcol-divider':'#f0f0f0', '--hcol-size':'11px',
+      '--grid-style':'solid', '--grid-line':'#f2f2f2',
+      '--grid-weekend':'rgba(0,0,0,.01)', '--grid-today':'rgba(200,0,0,.025)',
+      '--weekend-bg':'#f8f8f8', '--weekend-fg':'#aaa',
+      '--today-col-bg':'#fef0f0', '--today-col-fg':'#c00',
+      '--mile-row-bg':'#fafafa',
+      '--mile-row-border':'#e8e8e8', '--mile-label-fg':'#666',
+      '--mile-label-bg':'#f8f8f8',
+      '--row-border':'#f0f0f0', '--resize-handle':'#ddd',
+      '--color-block-w':'3px', '--color-block-mr':'12px', '--color-block-radius':'0',
+      '--row-label-size':'13px',
+      '--bar-radius':'4px', '--bar-pad':'0 10px 0 10px',
+      '--bar-shadow':'none', '--bar-shadow-hover':'0 2px 8px rgba(0,0,0,.08)',
+      '--bar-font-size':'12px', '--bar-font-weight':'600', '--bar-label-pl':'4px', '--bar-ls':'.3px',
+      '--stripe-w':'0', '--stripe-top':'0', '--stripe-bottom':'0', '--stripe-radius':'0',
+      '--today-line-bg':'#c00', '--today-line-fg':'#c00', '--today-line-w':'1px',
+      '--empty-fg':'#bbb',
+      '--modal-label':'#888', '--modal-input-border':'#ddd',
+      '--modal-input-bg':'#fff', '--modal-divider':'#eee',
+    },
+    colors: [
+      { key:'charcoal', bg:'#f0f0f0', fg:'#333',    border:'#ccc' },
+      { key:'ink',      bg:'#e8eef5', fg:'#2a4a7a', border:'#a8bcd5' },
+      { key:'forest',   bg:'#e8f0e8', fg:'#2a5a2a', border:'#a8c8a8' },
+      { key:'wine',     bg:'#f5e8ea', fg:'#7a2a3a', border:'#d5a0aa' },
+      { key:'slate',    bg:'#eceff3', fg:'#3a4a5a', border:'#b0bcc8' },
+      { key:'espresso', bg:'#f0ebe5', fg:'#4a3520', border:'#c8b8a0' },
+      { key:'plum',     bg:'#f0e8f0', fg:'#5a2a5a', border:'#c8a0c8' },
+      { key:'steel',    bg:'#eaeef2', fg:'#3a4858', border:'#a8b8c8' },
+    ],
+  },
+};
+
+let COLORS = THEMES.classic.colors;
 const ROW_ICONS = ['📋','🚗','🅿️','🔧','📊','🎯','🔔','✅','🛠','📌'];
 function getC(k) { return COLORS.find(c=>c.key===k)||COLORS[0]; }
 
-// ── State ─────────────────────────────────────────────────────────────────
-let S = { title:'项目测试计划', startDate:'2026-04-07', endDate:'2026-05-04', milestones:[], rows:[], nextId:1 };
-function save() { try { localStorage.setItem('gantt_v3', JSON.stringify(S)); } catch(e){} }
-function load() { try { const r=localStorage.getItem('gantt_v3'); if(r) S=JSON.parse(r); } catch(e){} }
+// ── State ────────────────────────────────────────────────────────────────
+let S = { title:'项目测试计划', startDate:'2026-04-07', endDate:'2026-05-04', milestones:[], rows:[], nextId:1, theme:'classic' };
+function save(){ try{localStorage.setItem('gantt_v3',JSON.stringify(S))}catch(e){} }
+function load(){ try{const r=localStorage.getItem('gantt_v3');if(r)S=JSON.parse(r);if(!S.theme)S.theme='classic';}catch(e){} }
 
-// ── Date Utils ────────────────────────────────────────────────────────────
-function parseD(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
-function strD(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-function fmtMD(d){ return `${d.getMonth()+1}/${d.getDate()}`; }
-function daysDiff(a,b){ return Math.round((parseD(b)-parseD(a))/864e5); }
-function getDays(){ const days=[],end=parseD(S.endDate); let cur=parseD(S.startDate); while(cur<=end){days.push(new Date(cur));cur.setDate(cur.getDate()+1);} return days; }
-function todayStr(){ return strD(new Date()); }
-function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function applyTheme(key){
+  const theme=THEMES[key]; if(!theme) return;
+  S.theme=key; COLORS=theme.colors;
+  document.body.dataset.theme = key;
+  const root=document.documentElement;
+  Object.entries(theme.vars).forEach(([p,v])=>root.style.setProperty(p,v));
+}
 
-// ── Adaptive Columns ──────────────────────────────────────────────────────
-// Returns { cols, granularity, topGroups }
-// cols: [{ label, startDate, endDate, dayCount, isWeekend }]
-// topGroups: [{ label, colCount }]
-function buildColumns() {
-  const days = getDays();
-  const n = days.length;
-  let cols, gran;
+// ── Date Utils ───────────────────────────────────────────────────────────
+function parseD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+function strD(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function fmtMD(d){return`${d.getMonth()+1}/${d.getDate()}`}
+function daysDiff(a,b){return Math.round((parseD(b)-parseD(a))/864e5)}
+function getDays(){const days=[],end=parseD(S.endDate);let cur=parseD(S.startDate);while(cur<=end){days.push(new Date(cur));cur.setDate(cur.getDate()+1)}return days}
+function todayStr(){return strD(new Date())}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
-  if (n <= 90) {
-    // Daily
-    gran = 'day';
-    cols = days.map(d => ({
-      label: String(d.getDate()),
-      startDate: strD(d),
-      endDate: strD(d),
-      dayCount: 1,
-      isWeekend: d.getDay()===0||d.getDay()===6,
-    }));
-  } else {
-    // Weekly (group by ISO week starting Monday)
-    gran = 'week';
-    cols = [];
-    let i = 0;
-    while (i < days.length) {
-      let j = i + 1;
-      while (j < days.length && days[j].getDay() !== 1 && (j-i) < 7) j++;
-      const sl = days.slice(i, j);
-      cols.push({
-        label: fmtMD(sl[0]),
-        startDate: strD(sl[0]),
-        endDate:   strD(sl[sl.length-1]),
-        dayCount: sl.length,
-        isWeekend: false,
-      });
-      i = j;
-    }
-  }
-
-  // Top groups
+// ── Columns ──────────────────────────────────────────────────────────────
+function buildColumns(){
+  const days=getDays(),n=days.length;let cols,gran;
+  if(n<=90){gran='day';cols=days.map(d=>({label:String(d.getDate()),startDate:strD(d),endDate:strD(d),dayCount:1,isWeekend:d.getDay()===0||d.getDay()===6}))}
+  else{gran='week';cols=[];let i=0;while(i<days.length){let j=i+1;while(j<days.length&&days[j].getDay()!==1&&(j-i)<7)j++;const sl=days.slice(i,j);cols.push({label:fmtMD(sl[0]),startDate:strD(sl[0]),endDate:strD(sl[sl.length-1]),dayCount:sl.length,isWeekend:false});i=j}}
   let topGroups;
-  if (gran === 'day') {
-    // Group by week
-    topGroups = [];
-    days.forEach(d => {
-      const isMonday = d.getDay() === 1;
-      if (topGroups.length === 0 || isMonday) {
-        const weekEnd = new Date(d); weekEnd.setDate(d.getDate()+6);
-        const endClipped = weekEnd > parseD(S.endDate) ? parseD(S.endDate) : weekEnd;
-        topGroups.push({ label: `${fmtMD(d)} - ${fmtMD(endClipped)}`, colCount: 0 });
-      }
-      topGroups[topGroups.length-1].colCount++;
-    });
-  } else {
-    // Group by month
-    topGroups = [];
-    cols.forEach(col => {
-      const d = parseD(col.startDate);
-      const lbl = `${d.getFullYear()}年${d.getMonth()+1}月`;
-      if (topGroups.length===0 || topGroups[topGroups.length-1].label!==lbl) {
-        topGroups.push({ label: lbl, colCount: 1 });
-      } else {
-        topGroups[topGroups.length-1].colCount++;
-      }
-    });
-  }
-
-  return { cols, gran, topGroups };
+  if(gran==='day'){topGroups=[];days.forEach(d=>{const isM=d.getDay()===1;if(!topGroups.length||isM){const we=new Date(d);we.setDate(d.getDate()+6);const ec=we>parseD(S.endDate)?parseD(S.endDate):we;topGroups.push({startD:d,endD:ec,colCount:0})}topGroups[topGroups.length-1].colCount++});topGroups.forEach((g,i)=>{g.label=i===topGroups.length-1?fmtMD(g.endD):`${fmtMD(g.startD)} - ${fmtMD(g.endD)}`})}
+  else{topGroups=[];cols.forEach(col=>{const d=parseD(col.startDate),lbl=`${d.getFullYear()}年${d.getMonth()+1}月`;if(!topGroups.length||topGroups[topGroups.length-1].label!==lbl)topGroups.push({label:lbl,colCount:1});else topGroups[topGroups.length-1].colCount++})}
+  return{cols,gran,topGroups}
+}
+function colPos(dateStr,cols){
+  const d=parseD(dateStr);
+  for(let i=0;i<cols.length;i++){const cs=parseD(cols[i].startDate),ce=parseD(cols[i].endDate);if(d>=cs&&d<=ce)return i+daysDiff(cols[i].startDate,dateStr)/cols[i].dayCount}
+  return d<parseD(cols[0].startDate)?0:cols.length
 }
 
-// Fractional column position [0, cols.length] for a given date
-function colPos(dateStr, cols) {
-  const d = parseD(dateStr);
-  for (let i = 0; i < cols.length; i++) {
-    const cs = parseD(cols[i].startDate);
-    const ce = parseD(cols[i].endDate);
-    if (d >= cs && d <= ce) {
-      const frac = daysDiff(cols[i].startDate, dateStr) / cols[i].dayCount;
-      return i + frac;
-    }
-  }
-  if (d < parseD(cols[0].startDate)) return 0;
-  return cols.length;
-}
+// ── Dimensions ───────────────────────────────────────────────────────────
+let CANVAS_W=1280;
+function computeCanvasW(){if(S.canvasW)return S.canvasW;const s=document.getElementById('center-stage');return s?Math.max(540,Math.round((s.clientWidth-48)*2/3)):860}
+function computeCanvasH(){if(S.canvasH)return S.canvasH;return Math.round(CANVAS_W*9/16)}
+function computeColW(n){return Math.max(14,(CANVAS_W-LABEL_W)/n)}
+function getRowH(row){return(row&&row.height&&row.height>=MIN_ROW_H)?row.height:DEF_ROW_H}
 
-// ── Dimensions ────────────────────────────────────────────────────────────
-let CANVAS_W = 1280;
+// ── Tooltip ──────────────────────────────────────────────────────────────
+const tipEl=()=>document.getElementById('gantt-tooltip');
+function showTip(t,x,y){const e=tipEl();if(!e)return;e.textContent=t;e.classList.add('visible');e.style.left=x+12+'px';e.style.top=y-30+'px'}
+function hideTip(){const e=tipEl();if(e)e.classList.remove('visible')}
 
-function computeCanvasW() {
-  const stage = document.getElementById('center-stage');
-  if (!stage) return 860;
-  return Math.max(540, Math.round((stage.clientWidth - 48) * 2 / 3));
-}
-
-function computeColW(numCols) {
-  return Math.max(14, (CANVAS_W - LABEL_W) / numCols);
-}
-
-function getRowH(row) {
-  return (row && row.height && row.height >= MIN_ROW_H) ? row.height : DEF_ROW_H;
-}
-
-// ── Render Toolbar ────────────────────────────────────────────────────────
-function renderToolbar() {
-  document.getElementById('toolbar').innerHTML = `
+// ── Render Toolbar ───────────────────────────────────────────────────────
+function renderToolbar(){
+  const opts=Object.values(THEMES).map(t=>`<option value="${t.key}"${t.key===S.theme?' selected':''}>${t.name}</option>`).join('');
+  document.getElementById('toolbar').innerHTML=`
     <span class="toolbar-title" id="tb-title" title="双击编辑标题">📋 ${escH(S.title)}</span>
+    <div class="toolbar-sep"></div>
+    <span class="toolbar-label">🎨 主题</span>
+    <select class="toolbar-select" id="tb-theme">${opts}</select>
     <div class="toolbar-sep"></div>
     <span class="toolbar-label">日期范围</span>
     <input type="date" class="toolbar-input" id="tb-start" value="${S.startDate}">
@@ -505,391 +864,211 @@ function renderToolbar() {
     <div class="toolbar-sep"></div>
     <button class="btn btn-primary" id="tb-add-row">＋ 添加行</button>
     <button class="btn btn-outline" id="tb-add-mile">🏁 里程碑</button>
-    <button class="btn btn-outline" id="tb-export">📷 导出16:9</button>
-  `;
-  document.getElementById('tb-title').ondblclick = () => {
-    const v = prompt('修改标题', S.title); if(v!==null){S.title=v;save();renderToolbar();renderGantt();}
-  };
-  document.getElementById('tb-start').onchange = e => { S.startDate=e.target.value; save(); renderGantt(); };
-  document.getElementById('tb-end').onchange   = e => { S.endDate=e.target.value;   save(); renderGantt(); };
-  document.getElementById('tb-add-row').onclick  = () => openRowModal();
-  document.getElementById('tb-add-mile').onclick = () => openMileModal();
-  document.getElementById('tb-export').onclick   = doExport;
+    <button class="btn btn-outline" id="tb-export">📷 导出16:9</button>`;
+  document.getElementById('tb-title').ondblclick=()=>{const v=prompt('修改标题',S.title);if(v!==null){S.title=v;save();renderToolbar();renderGantt()}};
+  document.getElementById('tb-theme').onchange=e=>{applyTheme(e.target.value);save();renderToolbar();renderGantt()};
+  document.getElementById('tb-start').onchange=e=>{S.startDate=e.target.value;save();renderGantt()};
+  document.getElementById('tb-end').onchange=e=>{S.endDate=e.target.value;save();renderGantt()};
+  document.getElementById('tb-add-row').onclick=()=>openRowModal();
+  document.getElementById('tb-add-mile').onclick=()=>openMileModal();
+  document.getElementById('tb-export').onclick=doExport;
 }
 
-// ── Render Gantt ──────────────────────────────────────────────────────────
-function renderGantt() {
-  CANVAS_W = computeCanvasW();
-  const { cols, gran, topGroups } = buildColumns();
-  const COL_W  = computeColW(cols.length);
-  const totalW = cols.length * COL_W;
-  const canvasH = Math.round(CANVAS_W * 9/16);
-  const totalRowH = S.rows.reduce((s, r) => s + getRowH(r), 0);
+// ── Render Gantt ─────────────────────────────────────────────────────────
+function renderGantt(){
+  CANVAS_W=computeCanvasW();
+  const{cols,gran,topGroups}=buildColumns();
+  const COL_W=computeColW(cols.length),totalW=cols.length*COL_W;
+  const canvasH=computeCanvasH();
+  const totalRowH=S.rows.reduce((s,r)=>s+getRowH(r),0);
+  const ce=document.getElementById('gantt-canvas');
+  ce.style.width=CANVAS_W+'px';
+  ce.style.height=Math.max(canvasH,TITLE_H+HEADER_H+totalRowH)+'px';
+  const tp=colPos(todayStr(),cols);
 
-  // Set canvas size
-  const canvasEl = document.getElementById('gantt-canvas');
-  canvasEl.style.width  = `${CANVAS_W}px`;
-  canvasEl.style.height = `${Math.max(canvasH, TITLE_H + HEADER_H + totalRowH)}px`;
-
-  const todayPos = colPos(todayStr(), cols); // fractional
-
-  // ── Top group row ──
-  const groupCells = topGroups.map((g,i) =>
-    `<div class="h-group-cell" style="width:${g.colCount*COL_W}px;height:${H_GROUP}px">${g.label}</div>`
-  ).join('');
-
-  // ── Column header row ──
-  const colCells = cols.map((col, i) => {
-    const isWE = col.isWeekend;
-    const isTd = (todayPos >= i && todayPos < i+1);
-    const cls  = [isWE?'weekend':'', isTd?'today-col':''].filter(Boolean).join(' ');
-    return `<div class="h-col-cell ${cls}" style="width:${COL_W}px;height:${H_COL}px">${col.label}</div>`;
-  }).join('');
-
-  // ── Milestone header ──
-  const mileHeaders = S.milestones.map(m => {
-    const px = colPos(m.date, cols);
-    if (px < 0 || px > cols.length) return '';
-    const c = getC(m.color);
-    return `
-      <div class="milestone-marker" data-id="${m.id}" style="left:${px*COL_W + COL_W/2}px;height:${H_MILE}px;justify-content:center"
-           title="${escH(m.label)} (${m.date})">
-        <span class="milestone-icon">${m.icon||'🏆'}</span>
-        <span class="milestone-label" style="color:${c.fg}">${escH(m.label)}</span>
-      </div>`;
-  }).join('');
-
-  // ── Rows ──
-  const rowsHtml = S.rows.map((row, ri) => {
-    const ROW_H = getRowH(row);
-    const c = getC(row.color);
-    const cells = cols.map((col,i) => {
-      const isWE = col.isWeekend;
-      const isTd = (todayPos >= i && todayPos < i+1);
-      const cls  = [isWE?'weekend':'', isTd?'today-col':''].filter(Boolean).join(' ');
-      return `<div class="grid-cell ${cls}" style="width:${COL_W}px"></div>`;
-    }).join('');
-
-    const bars = (row.tasks||[]).map(t => {
-      const sp = colPos(t.startDate, cols);
-      const ep = colPos(t.endDate,   cols) + 1/cols[Math.min(Math.floor(colPos(t.endDate,cols)), cols.length-1)].dayCount;
-      if (ep < 0 || sp > cols.length) return '';
-      const left = Math.max(0, sp) * COL_W;
-      const w    = Math.max(COL_W * .8, (ep - Math.max(0,sp)) * COL_W - 4);
-      const tc   = getC(t.color||row.color);
-      const taskH = Math.min(TASK_H, ROW_H - 10);
-      return `
-        <div class="task-bar" data-task-id="${t.id}" data-row-id="${row.id}"
-             style="left:${left}px;width:${w}px;top:${(ROW_H-taskH)/2}px;height:${taskH}px;
-                    background:${tc.bg};border:1.5px solid ${tc.border};color:${tc.fg}">
-          <div class="task-color-stripe" style="background:${tc.fg}"></div>
-          <span class="task-label">${escH(t.label)}</span>
-          <span class="task-delete" data-task-id="${t.id}" data-row-id="${row.id}">✕</span>
-        </div>`;
-    }).join('');
-
-    const labelBg = `linear-gradient(135deg, ${c.bg}, ${c.bg}cc)`;
-    return `
-      <div class="gantt-row" data-row-id="${row.id}" style="height:${ROW_H}px;position:relative">
-        <div class="row-label" style="width:${LABEL_W}px;background:${labelBg}">
-          <div class="row-label-left">
-            <div class="row-color-block" style="background:${c.fg};width:6px;height:${ROW_H}px;flex-shrink:0"></div>
-            <span class="row-label-icon" style="margin-left:10px">${row.icon||ROW_ICONS[ri%ROW_ICONS.length]}</span>
-            <span class="row-label-text" data-row-id="${row.id}" style="color:${c.fg}">${escH(row.label)}</span>
-          </div>
-          <div class="row-actions">
-            <span class="row-action-btn" data-action="color" data-row-id="${row.id}" title="颜色">🎨</span>
-            <span class="row-action-btn" data-action="del"   data-row-id="${row.id}" title="删除">🗑</span>
-          </div>
-        </div>
-        <div class="row-grid" data-row-id="${row.id}" style="width:${totalW}px;height:${ROW_H}px">
-          <div class="grid-lines">${cells}</div>
-          ${bars}
-        </div>
-        <div class="row-resize-handle" data-row-id="${row.id}"></div>
-      </div>`;
-  }).join('');
-
-  // ── Today line ──
-  let todayLine = '';
-  if (todayPos >= 0 && todayPos <= cols.length) {
-    const lx = todayPos * COL_W;
-    todayLine = `<div class="today-line" style="left:${lx}px;height:${totalRowH}px">
-      <div class="today-lbl">今日</div></div>`;
+  // Week boundary helper for daily granularity
+  function weekCls(col) {
+    if (gran !== 'day') return '';
+    const d = parseD(col.startDate), dow = d.getDay();
+    const cls = [];
+    if (dow === 1) cls.push('week-start');  // Monday
+    if (dow === 0) cls.push('week-end');    // Sunday
+    return cls.join(' ');
   }
 
-  // ── Milestone v-lines ──
-  const mileVLines = S.milestones.map(m => {
-    const px = colPos(m.date, cols);
-    if (px < 0 || px > cols.length) return '';
-    const c = getC(m.color);
-    return `<div class="milestone-vline" style="left:${px*COL_W}px;height:${totalRowH}px;border-color:${c.fg}"></div>`;
+  const groupH=topGroups.map(g=>`<div class="h-group-cell" style="width:${g.colCount*COL_W}px;height:${H_GROUP}px">${g.label}</div>`).join('');
+  const colH=cols.map((c,i)=>{const we=c.isWeekend,td=tp>=i&&tp<i+1;return`<div class="h-col-cell ${we?'weekend':''} ${td?'today-col':''} ${weekCls(c)}" style="width:${COL_W}px;height:${H_COL}px">${c.label}</div>`}).join('');
+  const mileH=S.milestones.map(m=>{const px=colPos(m.date,cols);if(px<0||px>cols.length)return'';const c=getC(m.color);return`<div class="milestone-marker" data-id="${m.id}" style="left:${px*COL_W+COL_W/2}px;height:${H_MILE}px;justify-content:center" data-tooltip="${escH(m.label)} (${m.date})"><span class="milestone-icon">${m.icon||'🏆'}</span><span class="milestone-label" style="color:${c.fg}">${escH(m.label)}</span></div>`}).join('');
+
+  const rowsH=S.rows.map((row,ri)=>{
+    const RH=getRowH(row),c=getC(row.color);
+    const cells=cols.map((col,i)=>{const we=col.isWeekend,td=tp>=i&&tp<i+1;return`<div class="grid-cell ${we?'weekend':''} ${td?'today-col':''} ${weekCls(col)}" style="width:${COL_W}px"></div>`}).join('');
+    const bars=(row.tasks||[]).map(t=>{
+      const sp=colPos(t.startDate,cols),ep=colPos(t.endDate,cols)+1/cols[Math.min(Math.floor(colPos(t.endDate,cols)),cols.length-1)].dayCount;
+      if(ep<0||sp>cols.length)return'';
+      const left=Math.max(0,sp)*COL_W,w=Math.max(COL_W*.8,(ep-Math.max(0,sp))*COL_W-4);
+      const tc=getC(t.color||row.color),tH=Math.min(TASK_H,RH-10),dur=daysDiff(t.startDate,t.endDate)+1;
+      return`<div class="task-bar" data-task-id="${t.id}" data-row-id="${row.id}" data-tooltip="${escH(t.label)}  ${t.startDate} ~ ${t.endDate}  (${dur}天)" style="left:${left}px;width:${w}px;top:${(RH-tH)/2}px;height:${tH}px;background:${tc.bg};border:1.5px solid ${tc.border};color:${tc.fg}"><div class="task-color-stripe" style="background:${tc.fg}"></div><span class="task-label">${escH(t.label)}</span><span class="task-delete" data-task-id="${t.id}" data-row-id="${row.id}">✕</span></div>`
+    }).join('');
+    const lbg=`linear-gradient(135deg,${c.bg},${c.bg}cc)`;
+    return`<div class="gantt-row" data-row-id="${row.id}" style="height:${RH}px;position:relative"><div class="row-label" style="width:${LABEL_W}px;background:${lbg}"><div class="row-label-left"><div class="row-color-block" style="background:${c.fg}"></div><span class="row-label-icon" style="margin-left:10px">${row.icon||ROW_ICONS[ri%ROW_ICONS.length]}</span><span class="row-label-text" data-row-id="${row.id}" style="color:${c.fg}">${escH(row.label)}</span></div><div class="row-actions"><span class="row-action-btn" data-action="color" data-row-id="${row.id}" title="颜色">🎨</span><span class="row-action-btn" data-action="del" data-row-id="${row.id}" title="删除">🗑</span></div></div><div class="row-grid" data-row-id="${row.id}" style="width:${totalW}px;height:${RH}px"><div class="grid-lines">${cells}</div>${bars}</div><div class="row-resize-handle" data-row-id="${row.id}"></div></div>`
   }).join('');
 
-  const granLabel = gran==='week' ? '以周为单位' : '以天为单位';
+  let todayLine='';
+  if(tp>=0&&tp<=cols.length){todayLine=`<div class="today-line" style="left:${tp*COL_W}px;height:${totalRowH}px"><div class="today-lbl">今日</div></div>`}
+  const mileV=S.milestones.map(m=>{const px=colPos(m.date,cols);if(px<0||px>cols.length)return'';const c=getC(m.color);return`<div class="milestone-vline" style="left:${px*COL_W}px;height:${totalRowH}px;border-color:${c.fg}"></div>`}).join('');
+  const granL=gran==='week'?'以周为单位':'以天为单位';
 
-  document.getElementById('gantt-inner').innerHTML = `
-    <div class="gantt-title-banner">
-      <span class="granularity-badge">${granLabel}</span>
-      <span class="gantt-title-text" id="inner-title" title="双击编辑">📋 ${escH(S.title)}</span>
-      <span class="gantt-title-sub">🗓 ${S.startDate} ~ ${S.endDate}</span>
-    </div>
-    <div class="gantt-header" style="top:${TITLE_H}px">
-      <div class="gantt-corner" style="width:${LABEL_W}px;height:${HEADER_H}px">工作事项</div>
-      <div class="gantt-timeline" style="width:${totalW}px">
-        <div class="h-groups">${groupCells}</div>
-        <div class="h-cols">${colCells}</div>
-        <div class="h-milestones" id="h-milestones" style="height:${H_MILE}px;position:relative">
-          <div class="h-mile-label">⭐ 重要节点</div>
-          ${mileHeaders}
-        </div>
-      </div>
-    </div>
-    <div class="gantt-body" id="gantt-body" style="position:relative">
-      ${S.rows.length===0?'<div class="empty-state">暂无工作行，点击上方「＋ 添加行」开始规划</div>':''}
-      ${rowsHtml}
-      <div style="position:absolute;top:0;left:${LABEL_W}px;width:${totalW}px;height:${totalRowH}px;pointer-events:none">
-        ${todayLine}${mileVLines}
-      </div>
-    </div>
-  `;
+  const isMorandi = S.theme === 'morandi';
+  const headerTop = isMorandi ? 0 : TITLE_H;
+  const cornerContent = isMorandi
+    ? `<span class="corner-title">${escH(S.title)}</span><span class="corner-sub">${S.startDate} ~ ${S.endDate}</span>`
+    : '工作事项';
 
-  attachEvents(cols, COL_W);
+  document.getElementById('gantt-inner').innerHTML=`
+    <div class="gantt-title-banner"><span class="granularity-badge">${granL}</span><span class="gantt-title-text" id="inner-title" title="双击编辑">📋 ${escH(S.title)}</span><span class="gantt-title-sub">🗓 ${S.startDate} ~ ${S.endDate}</span></div>
+    <div class="gantt-header" style="top:${headerTop}px"><div class="gantt-corner" style="width:${LABEL_W}px;height:${HEADER_H}px">${cornerContent}</div><div class="gantt-timeline" style="width:${totalW}px"><div class="h-groups">${groupH}</div><div class="h-cols">${colH}</div><div class="h-milestones" id="h-milestones" style="height:${H_MILE}px;position:relative"><div class="h-mile-label">⭐ 重要节点</div>${mileH}</div></div></div>
+    <div class="gantt-body" id="gantt-body" style="position:relative">${S.rows.length===0?'<div class="empty-state">暂无工作行，点击上方「＋ 添加行」开始规划</div>':''}${rowsH}<div style="position:absolute;top:0;left:${LABEL_W}px;width:${totalW}px;height:${totalRowH}px;pointer-events:none">${todayLine}${mileV}</div></div>`;
 
-  // Inner title dblclick
-  const it = document.getElementById('inner-title');
-  if(it) it.ondblclick = () => { const v=prompt('修改标题',S.title); if(v!==null){S.title=v;save();renderToolbar();renderGantt();} };
+  attachEvents(cols,COL_W);
+
+  // Canvas resize handles
+  ['canvas-resize-right','canvas-resize-bottom','canvas-resize-corner'].forEach(cls=>{
+    if(!ce.querySelector('.'+cls)){const h=document.createElement('div');h.className=cls;ce.appendChild(h)}
+  });
+  if(!ce.querySelector('.canvas-size-tip')){const t=document.createElement('div');t.className='canvas-size-tip';t.id='canvas-size-tip';ce.appendChild(t)}
+  attachCanvasResize();
+  const it=document.getElementById('inner-title');
+  if(it)it.ondblclick=()=>{const v=prompt('修改标题',S.title);if(v!==null){S.title=v;save();renderToolbar();renderGantt()}};
 }
 
-// ── Events ────────────────────────────────────────────────────────────────
-let drag = null;
-let rowResize = null;
-
-function attachEvents(cols, COL_W) {
-  document.querySelectorAll('.row-label-text').forEach(el => {
-    el.ondblclick = () => { const row=S.rows.find(r=>r.id===+el.dataset.rowId); if(row) openRowModal(row); };
+// ── Events ───────────────────────────────────────────────────────────────
+let drag=null,rowResize=null;
+function attachEvents(cols,COL_W){
+  document.querySelectorAll('.row-label-text').forEach(el=>{el.ondblclick=()=>{const row=S.rows.find(r=>r.id===+el.dataset.rowId);if(row)openRowModal(row)}});
+  document.querySelectorAll('.row-action-btn').forEach(el=>{el.onclick=e=>{e.stopPropagation();const row=S.rows.find(r=>r.id===+el.dataset.rowId);if(!row)return;if(el.dataset.action==='del'){if(confirm(`确认删除「${row.label}」？`)){S.rows=S.rows.filter(r=>r.id!==row.id);save();renderGantt()}}else openColorPicker(row)}});
+  document.querySelectorAll('.task-bar').forEach(el=>{el.onclick=e=>{if(!e.target.classList.contains('task-delete'))openTaskModal(+el.dataset.rowId,+el.dataset.taskId)}});
+  document.querySelectorAll('.task-delete').forEach(el=>{el.onclick=e=>{e.stopPropagation();const row=S.rows.find(r=>r.id===+el.dataset.rowId);if(row){row.tasks=row.tasks.filter(t=>t.id!==+el.dataset.taskId);save();renderGantt()}}});
+  document.querySelectorAll('[data-tooltip]').forEach(el=>{
+    el.addEventListener('mouseenter',e=>showTip(el.dataset.tooltip,e.clientX,e.clientY));
+    el.addEventListener('mousemove',e=>{const t=tipEl();if(t&&t.classList.contains('visible')){t.style.left=e.clientX+12+'px';t.style.top=e.clientY-30+'px'}});
+    el.addEventListener('mouseleave',hideTip);
   });
-  document.querySelectorAll('.row-action-btn').forEach(el => {
-    el.onclick = e => {
-      e.stopPropagation();
-      const row=S.rows.find(r=>r.id===+el.dataset.rowId); if(!row) return;
-      if(el.dataset.action==='del'){
-        if(confirm(`确认删除「${row.label}」？`)){S.rows=S.rows.filter(r=>r.id!==row.id);save();renderGantt();}
-      } else { openColorPicker(row); }
-    };
-  });
-  document.querySelectorAll('.task-bar').forEach(el => {
-    el.onclick = e => { if(!e.target.classList.contains('task-delete')) openTaskModal(+el.dataset.rowId,+el.dataset.taskId); };
-  });
-  document.querySelectorAll('.task-delete').forEach(el => {
-    el.onclick = e => {
-      e.stopPropagation();
-      const row=S.rows.find(r=>r.id===+el.dataset.rowId);
-      if(row){row.tasks=row.tasks.filter(t=>t.id!==+el.dataset.taskId);save();renderGantt();}
-    };
-  });
-
-  // Row resize drag
-  document.querySelectorAll('.row-resize-handle').forEach(el => {
-    el.addEventListener('mousedown', e => {
-      if(e.button!==0) return;
-      e.preventDefault(); e.stopPropagation();
-      const rowId=+el.dataset.rowId;
-      const row=S.rows.find(r=>r.id===rowId); if(!row) return;
-      const startY=e.clientY;
-      const startH=getRowH(row);
-      document.body.style.cursor='row-resize';
-      rowResize={rowId};
-      const onMove=mv=>{
-        const newH=Math.max(MIN_ROW_H, startH+(mv.clientY-startY));
-        row.height=Math.round(newH);
-        const rowEl=document.querySelector(`.gantt-row[data-row-id="${rowId}"]`);
-        if(rowEl){
-          rowEl.style.height=newH+'px';
-          const grid=rowEl.querySelector('.row-grid');
-          if(grid) grid.style.height=newH+'px';
-          const block=rowEl.querySelector('.row-color-block');
-          if(block) block.style.height=newH+'px';
-        }
-      };
-      const onUp=()=>{
-        document.removeEventListener('mousemove',onMove);
-        document.removeEventListener('mouseup',onUp);
-        document.body.style.cursor='';
-        rowResize=null;
-        save(); renderGantt();
-      };
-      document.addEventListener('mousemove',onMove);
-      document.addEventListener('mouseup',onUp);
-    });
-  });
-
-  // Drag to create
-  document.querySelectorAll('.row-grid').forEach(el => {
-    el.addEventListener('mousedown', e => {
-      if(e.button!==0||e.target.closest('.task-bar')||e.target.closest('.row-resize-handle')) return;
-      e.preventDefault();
-      const rowId=+el.dataset.rowId;
-      const row=S.rows.find(r=>r.id===rowId);
-      const ROW_H=getRowH(row);
-      const rect=el.getBoundingClientRect();
-      const sc=Math.floor((e.clientX-rect.left)/COL_W);
-      if(sc<0||sc>=cols.length) return;
-      const c=getC(row?.color||'blue');
-      const taskH=Math.min(TASK_H, ROW_H-10);
-      const pv=document.createElement('div');
-      pv.className='task-bar';
-      pv.style.cssText=`left:${sc*COL_W}px;width:${COL_W-4}px;top:${(ROW_H-taskH)/2}px;height:${taskH}px;
-        background:${c.bg};border:2px dashed ${c.border};color:${c.fg};opacity:.65;pointer-events:none;z-index:8;`;
-      el.appendChild(pv);
-      drag={rowId,sc,ec:sc,pv,rect,cols,COL_W};
-      const onMove=mv=>{
-        if(!drag) return;
-        drag.ec=Math.min(Math.max(drag.sc,Math.floor((mv.clientX-drag.rect.left)/COL_W)),cols.length-1);
-        drag.pv.style.left=`${drag.sc*COL_W}px`;
-        drag.pv.style.width=`${(drag.ec-drag.sc+1)*COL_W-4}px`;
-      };
-      const onUp=()=>{
-        document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);
-        if(!drag) return;
-        drag.pv.remove();
-        const sd=cols[drag.sc].startDate, ed=cols[drag.ec].endDate, d=drag; drag=null;
-        openTaskModal(d.rowId,null,sd,ed);
-      };
-      document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);
-    });
-  });
-
-  // Milestone row click
+  document.querySelectorAll('.row-resize-handle').forEach(el=>{
+    el.addEventListener('mousedown',e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();const rowId=+el.dataset.rowId,row=S.rows.find(r=>r.id===rowId);if(!row)return;const sY=e.clientY,sH=getRowH(row);document.body.style.cursor='row-resize';rowResize={rowId};
+    const onM=mv=>{const nH=Math.max(MIN_ROW_H,sH+(mv.clientY-sY));row.height=Math.round(nH);const re=document.querySelector(`.gantt-row[data-row-id="${rowId}"]`);if(re){re.style.height=nH+'px';const g=re.querySelector('.row-grid');if(g)g.style.height=nH+'px'}};
+    const onU=()=>{document.removeEventListener('mousemove',onM);document.removeEventListener('mouseup',onU);document.body.style.cursor='';rowResize=null;save();renderGantt()};
+    document.addEventListener('mousemove',onM);document.addEventListener('mouseup',onU)})});
+  document.querySelectorAll('.row-grid').forEach(el=>{
+    el.addEventListener('mousedown',e=>{if(e.button!==0||e.target.closest('.task-bar')||e.target.closest('.row-resize-handle'))return;e.preventDefault();
+    const rowId=+el.dataset.rowId,row=S.rows.find(r=>r.id===rowId),RH=getRowH(row),rect=el.getBoundingClientRect(),sc=Math.floor((e.clientX-rect.left)/COL_W);
+    if(sc<0||sc>=cols.length)return;const c=getC(row?.color||COLORS[0].key),tH=Math.min(TASK_H,RH-10);
+    const pv=document.createElement('div');pv.className='task-bar';pv.style.cssText=`left:${sc*COL_W}px;width:${COL_W-4}px;top:${(RH-tH)/2}px;height:${tH}px;background:${c.bg};border:2px dashed ${c.border};color:${c.fg};opacity:.65;pointer-events:none;z-index:8`;
+    el.appendChild(pv);drag={rowId,sc,ec:sc,pv,rect,cols,COL_W};
+    const onM=mv=>{if(!drag)return;drag.ec=Math.min(Math.max(drag.sc,Math.floor((mv.clientX-drag.rect.left)/COL_W)),cols.length-1);drag.pv.style.left=drag.sc*COL_W+'px';drag.pv.style.width=(drag.ec-drag.sc+1)*COL_W-4+'px'};
+    const onU=()=>{document.removeEventListener('mousemove',onM);document.removeEventListener('mouseup',onU);if(!drag)return;drag.pv.remove();const sd=cols[drag.sc].startDate,ed=cols[drag.ec].endDate,d=drag;drag=null;openTaskModal(d.rowId,null,sd,ed)};
+    document.addEventListener('mousemove',onM);document.addEventListener('mouseup',onU)})});
   const mh=document.getElementById('h-milestones');
-  if(mh){
-    mh.onclick=e=>{
-      if(e.target.closest('.milestone-marker')||e.target.closest('.h-mile-label')) return;
-      const rect=mh.getBoundingClientRect();
-      const col=Math.floor((e.clientX-rect.left)/COL_W);
-      if(col>=0&&col<cols.length) openMileModal(null,cols[col].startDate);
-    };
-    document.querySelectorAll('.milestone-marker').forEach(el=>{
-      el.onclick=e=>{e.stopPropagation();const m=S.milestones.find(x=>x.id===+el.dataset.id);if(m) openMileModal(m);};
-    });
-  }
+  if(mh){mh.onclick=e=>{if(e.target.closest('.milestone-marker')||e.target.closest('.h-mile-label'))return;const rect=mh.getBoundingClientRect(),col=Math.floor((e.clientX-rect.left)/COL_W);if(col>=0&&col<cols.length)openMileModal(null,cols[col].startDate)};
+  document.querySelectorAll('.milestone-marker').forEach(el=>{el.onclick=e=>{e.stopPropagation();const m=S.milestones.find(x=>x.id===+el.dataset.id);if(m)openMileModal(m)}})}
 }
 
-// ── Modals ────────────────────────────────────────────────────────────────
-function showModal(html){document.getElementById('modal-overlay').classList.remove('hidden');document.getElementById('modal-box').innerHTML=html;}
-function hideModal(){document.getElementById('modal-overlay').classList.add('hidden');}
-function colorOptsHtml(sel){return COLORS.map(c=>`<div class="color-opt${c.key===sel?' selected':''}" data-color="${c.key}" style="background:${c.bg};border:2px solid ${c.border}"></div>`).join('');}
-function bindColors(cid,hid){document.querySelectorAll(`#${cid} .color-opt`).forEach(el=>{el.onclick=()=>{document.querySelectorAll(`#${cid} .color-opt`).forEach(x=>x.classList.remove('selected'));el.classList.add('selected');document.getElementById(hid).value=el.dataset.color;};});}
+// ── Canvas Resize ─────────────────────────────────────────────────────
+function attachCanvasResize(){
+  const ce=document.getElementById('gantt-canvas'),tip=document.getElementById('canvas-size-tip');
+  if(!ce)return;
+  function showSizeTip(w,h){if(tip){tip.textContent=`${Math.round(w)} × ${Math.round(h)}`;tip.classList.add('visible')}}
+  function hideSizeTip(){if(tip)tip.classList.remove('visible')}
+
+  function startResize(e,mode){
+    if(e.button!==0)return;e.preventDefault();e.stopPropagation();
+    const sX=e.clientX,sY=e.clientY,sW=ce.offsetWidth,sH=ce.offsetHeight;
+    const handle=e.target;handle.classList.add('active');
+    const cursors={right:'col-resize',bottom:'row-resize',corner:'nwse-resize'};
+    document.body.style.cursor=cursors[mode]||'';
+    document.body.style.userSelect='none';
+    showSizeTip(sW,sH);
+
+    const onM=mv=>{
+      let nW=sW,nH=sH;
+      if(mode==='right'||mode==='corner') nW=Math.max(540,sW+(mv.clientX-sX));
+      if(mode==='bottom'||mode==='corner') nH=Math.max(300,sH+(mv.clientY-sY));
+      ce.style.width=nW+'px';
+      ce.style.height=nH+'px';
+      showSizeTip(nW,nH);
+    };
+    const onU=mu=>{
+      document.removeEventListener('mousemove',onM);
+      document.removeEventListener('mouseup',onU);
+      handle.classList.remove('active');
+      document.body.style.cursor='';
+      document.body.style.userSelect='';
+      hideSizeTip();
+      S.canvasW=ce.offsetWidth;S.canvasH=ce.offsetHeight;
+      CANVAS_W=S.canvasW;
+      save();renderGantt();
+    };
+    document.addEventListener('mousemove',onM);
+    document.addEventListener('mouseup',onU);
+  }
+
+  const rh=ce.querySelector('.canvas-resize-right');
+  const bh=ce.querySelector('.canvas-resize-bottom');
+  const ch=ce.querySelector('.canvas-resize-corner');
+  if(rh)rh.onmousedown=e=>startResize(e,'right');
+  if(bh)bh.onmousedown=e=>startResize(e,'bottom');
+  if(ch)ch.onmousedown=e=>startResize(e,'corner');
+
+  // Double-click any handle to reset to auto-size
+  [rh,bh,ch].forEach(h=>{if(h)h.ondblclick=()=>{delete S.canvasW;delete S.canvasH;CANVAS_W=computeCanvasW();save();renderGantt()}});
+}
+
+// ── Modals ───────────────────────────────────────────────────────────────
+function showModal(h){document.getElementById('modal-overlay').classList.remove('hidden');document.getElementById('modal-box').innerHTML=h}
+function hideModal(){document.getElementById('modal-overlay').classList.add('hidden')}
+function colorOptsHtml(sel){return COLORS.map(c=>`<div class="color-opt${c.key===sel?' selected':''}" data-color="${c.key}" style="background:${c.bg};border:2px solid ${c.border}"></div>`).join('')}
+function bindColors(cid,hid){document.querySelectorAll(`#${cid} .color-opt`).forEach(el=>{el.onclick=()=>{document.querySelectorAll(`#${cid} .color-opt`).forEach(x=>x.classList.remove('selected'));el.classList.add('selected');document.getElementById(hid).value=el.dataset.color}})}
 
 function openRowModal(row){
-  const isEdit=!!row,ic=row?.color||COLORS[S.rows.length%COLORS.length].key;
-  showModal(`<div class="modal-title">${isEdit?'编辑行':'添加工作行'}</div>
-    <div class="modal-field"><label>行名称</label><input id="m-rn" class="modal-input" type="text" value="${isEdit?escH(row.label):''}" placeholder="输入工作事项名称"></div>
-    <div class="modal-field"><label>颜色</label><div id="m-rc" class="color-opts">${colorOptsHtml(ic)}</div><input id="m-rcv" type="hidden" value="${ic}"></div>
-    <div class="modal-actions">${isEdit?`<button class="btn btn-danger" id="m-rdel">删除行</button>`:''}<button class="btn btn-outline" id="m-cancel">取消</button><button class="btn btn-primary" id="m-ok">确认</button></div>`);
-  setTimeout(()=>{
-    document.getElementById('m-rn').focus();bindColors('m-rc','m-rcv');
-    document.getElementById('m-cancel').onclick=hideModal;
-    if(isEdit) document.getElementById('m-rdel').onclick=()=>{if(confirm(`删除「${row.label}」？`)){S.rows=S.rows.filter(r=>r.id!==row.id);hideModal();save();renderGantt();}};
-    document.getElementById('m-ok').onclick=()=>{
-      const label=document.getElementById('m-rn').value.trim(),color=document.getElementById('m-rcv').value;
-      if(!label) return alert('请输入行名称');
-      if(isEdit){row.label=label;row.color=color;}else{S.rows.push({id:S.nextId++,label,color,tasks:[]});}
-      hideModal();save();renderGantt();
-    };
-    document.getElementById('m-rn').onkeydown=e=>{if(e.key==='Enter')document.getElementById('m-ok').click();if(e.key==='Escape')hideModal();};
-  },0);
+  const isE=!!row,ic=row?.color||COLORS[S.rows.length%COLORS.length].key;
+  showModal(`<div class="modal-title">${isE?'编辑行':'添加工作行'}</div><div class="modal-field"><label>行名称</label><input id="m-rn" class="modal-input" type="text" value="${isE?escH(row.label):''}" placeholder="输入工作事项名称"></div><div class="modal-field"><label>颜色</label><div id="m-rc" class="color-opts">${colorOptsHtml(ic)}</div><input id="m-rcv" type="hidden" value="${ic}"></div><div class="modal-actions">${isE?'<button class="btn btn-danger" id="m-rdel">删除行</button>':''}<button class="btn btn-outline" id="m-cancel">取消</button><button class="btn btn-primary" id="m-ok">确认</button></div>`);
+  setTimeout(()=>{document.getElementById('m-rn').focus();bindColors('m-rc','m-rcv');document.getElementById('m-cancel').onclick=hideModal;if(isE)document.getElementById('m-rdel').onclick=()=>{if(confirm(`删除「${row.label}」？`)){S.rows=S.rows.filter(r=>r.id!==row.id);hideModal();save();renderGantt()}};document.getElementById('m-ok').onclick=()=>{const label=document.getElementById('m-rn').value.trim(),color=document.getElementById('m-rcv').value;if(!label)return alert('请输入行名称');if(isE){row.label=label;row.color=color}else S.rows.push({id:S.nextId++,label,color,tasks:[]});hideModal();save();renderGantt()};document.getElementById('m-rn').onkeydown=e=>{if(e.key==='Enter')document.getElementById('m-ok').click();if(e.key==='Escape')hideModal()}},0)
 }
-
 function openColorPicker(row){
-  showModal(`<div class="modal-title">更改颜色：${escH(row.label)}</div>
-    <div class="modal-field"><div id="m-cp" class="color-opts">${colorOptsHtml(row.color)}</div><input id="m-cpv" type="hidden" value="${row.color}"></div>
-    <div class="modal-actions"><button class="btn btn-outline" id="m-cancel">取消</button><button class="btn btn-primary" id="m-ok">确认</button></div>`);
-  setTimeout(()=>{bindColors('m-cp','m-cpv');document.getElementById('m-cancel').onclick=hideModal;document.getElementById('m-ok').onclick=()=>{row.color=document.getElementById('m-cpv').value;hideModal();save();renderGantt();};},0);
+  showModal(`<div class="modal-title">更改颜色：${escH(row.label)}</div><div class="modal-field"><div id="m-cp" class="color-opts">${colorOptsHtml(row.color)}</div><input id="m-cpv" type="hidden" value="${row.color}"></div><div class="modal-actions"><button class="btn btn-outline" id="m-cancel">取消</button><button class="btn btn-primary" id="m-ok">确认</button></div>`);
+  setTimeout(()=>{bindColors('m-cp','m-cpv');document.getElementById('m-cancel').onclick=hideModal;document.getElementById('m-ok').onclick=()=>{row.color=document.getElementById('m-cpv').value;hideModal();save();renderGantt()}},0)
 }
-
 function openTaskModal(rowId,taskId,defS,defE){
-  const row=S.rows.find(r=>r.id===rowId);if(!row) return;
-  const task=taskId?row.tasks.find(t=>t.id===taskId):null,isEdit=!!task;
+  const row=S.rows.find(r=>r.id===rowId);if(!row)return;
+  const task=taskId?row.tasks.find(t=>t.id===taskId):null,isE=!!task;
   const sd=task?.startDate||defS||S.startDate,ed=task?.endDate||defE||sd,ic=task?.color||row.color;
-  showModal(`<div class="modal-title">${isEdit?'编辑任务':'新建任务'}</div>
-    <div class="modal-field"><label>任务名称</label><input id="m-tn" class="modal-input" type="text" value="${isEdit?escH(task.label):''}" placeholder="输入任务名称"></div>
-    <div class="modal-row"><div class="modal-field"><label>开始日期</label><input id="m-ts" class="modal-input" type="date" value="${sd}"></div><div class="modal-field"><label>结束日期</label><input id="m-te" class="modal-input" type="date" value="${ed}"></div></div>
-    <div class="modal-field"><label>颜色</label><div id="m-tc" class="color-opts">${colorOptsHtml(ic)}</div><input id="m-tcv" type="hidden" value="${ic}"></div>
-    <div class="modal-actions">${isEdit?`<button class="btn btn-danger" id="m-tdel">删除</button>`:''}<button class="btn btn-outline" id="m-cancel">取消</button><button class="btn btn-primary" id="m-ok">确认</button></div>`);
-  setTimeout(()=>{
-    document.getElementById('m-tn').focus();bindColors('m-tc','m-tcv');
-    document.getElementById('m-cancel').onclick=hideModal;
-    if(isEdit) document.getElementById('m-tdel').onclick=()=>{row.tasks=row.tasks.filter(t=>t.id!==task.id);hideModal();save();renderGantt();};
-    document.getElementById('m-ok').onclick=()=>{
-      const label=document.getElementById('m-tn').value.trim();
-      const s=document.getElementById('m-ts').value,e=document.getElementById('m-te').value,color=document.getElementById('m-tcv').value;
-      if(!label) return alert('请输入任务名称');if(!s||!e) return alert('请设置日期');if(s>e) return alert('开始不能晚于结束');
-      if(isEdit){task.label=label;task.startDate=s;task.endDate=e;task.color=color;}
-      else{row.tasks.push({id:S.nextId++,label,startDate:s,endDate:e,color});}
-      hideModal();save();renderGantt();
-    };
-    document.getElementById('m-tn').onkeydown=e=>{if(e.key==='Enter')document.getElementById('m-ok').click();if(e.key==='Escape')hideModal();};
-  },0);
+  showModal(`<div class="modal-title">${isE?'编辑任务':'新建任务'}</div><div class="modal-field"><label>任务名称</label><input id="m-tn" class="modal-input" type="text" value="${isE?escH(task.label):''}" placeholder="输入任务名称"></div><div class="modal-row"><div class="modal-field"><label>开始日期</label><input id="m-ts" class="modal-input" type="date" value="${sd}"></div><div class="modal-field"><label>结束日期</label><input id="m-te" class="modal-input" type="date" value="${ed}"></div></div><div class="modal-field"><label>颜色</label><div id="m-tc" class="color-opts">${colorOptsHtml(ic)}</div><input id="m-tcv" type="hidden" value="${ic}"></div><div class="modal-actions">${isE?'<button class="btn btn-danger" id="m-tdel">删除</button>':''}<button class="btn btn-outline" id="m-cancel">取消</button><button class="btn btn-primary" id="m-ok">确认</button></div>`);
+  setTimeout(()=>{document.getElementById('m-tn').focus();bindColors('m-tc','m-tcv');document.getElementById('m-cancel').onclick=hideModal;if(isE)document.getElementById('m-tdel').onclick=()=>{row.tasks=row.tasks.filter(t=>t.id!==task.id);hideModal();save();renderGantt()};document.getElementById('m-ok').onclick=()=>{const label=document.getElementById('m-tn').value.trim(),s=document.getElementById('m-ts').value,e=document.getElementById('m-te').value,color=document.getElementById('m-tcv').value;if(!label)return alert('请输入任务名称');if(!s||!e)return alert('请设置日期');if(s>e)return alert('开始不能晚于结束');if(isE){task.label=label;task.startDate=s;task.endDate=e;task.color=color}else row.tasks.push({id:S.nextId++,label,startDate:s,endDate:e,color});hideModal();save();renderGantt()};document.getElementById('m-tn').onkeydown=e=>{if(e.key==='Enter')document.getElementById('m-ok').click();if(e.key==='Escape')hideModal()}},0)
 }
-
 const MILE_ICONS=['🏆','🎯','🚀','🔔','⭐','✅','🎉','📌','🏁','💡'];
 function openMileModal(m,defDate){
-  const isEdit=!!m,ic=m?.color||'orange',ii=m?.icon||'🏆';
-  const iconOpts=MILE_ICONS.map(x=>`<span style="font-size:20px;cursor:pointer;padding:5px 8px;border-radius:7px;transition:background .1s;${x===ii?'background:#eef0f8;':''}" class="mi-opt" data-icon="${x}">${x}</span>`).join('');
-  showModal(`<div class="modal-title">${isEdit?'编辑里程碑':'添加里程碑'}</div>
-    <div class="modal-field"><label>名称</label><input id="m-mn" class="modal-input" type="text" value="${isEdit?escH(m.label):''}" placeholder="里程碑名称"></div>
-    <div class="modal-field"><label>日期</label><input id="m-md" class="modal-input" type="date" value="${isEdit?m.date:(defDate||S.startDate)}"></div>
-    <div class="modal-field"><label>图标</label><div style="display:flex;gap:4px;flex-wrap:wrap">${iconOpts}<input id="m-miv" type="hidden" value="${ii}"></div></div>
-    <div class="modal-field"><label>颜色</label><div id="m-mc" class="color-opts">${colorOptsHtml(ic)}</div><input id="m-mcv" type="hidden" value="${ic}"></div>
-    <div class="modal-actions">${isEdit?`<button class="btn btn-danger" id="m-mdel">删除</button>`:''}<button class="btn btn-outline" id="m-cancel">取消</button><button class="btn btn-primary" id="m-ok">确认</button></div>`);
-  setTimeout(()=>{
-    document.getElementById('m-mn').focus();bindColors('m-mc','m-mcv');
-    document.querySelectorAll('.mi-opt').forEach(el=>el.onclick=()=>{document.querySelectorAll('.mi-opt').forEach(x=>x.style.background='');el.style.background='#eef0f8';document.getElementById('m-miv').value=el.dataset.icon;});
-    document.getElementById('m-cancel').onclick=hideModal;
-    if(isEdit) document.getElementById('m-mdel').onclick=()=>{S.milestones=S.milestones.filter(x=>x.id!==m.id);hideModal();save();renderGantt();};
-    document.getElementById('m-ok').onclick=()=>{
-      const label=document.getElementById('m-mn').value.trim(),date=document.getElementById('m-md').value;
-      const color=document.getElementById('m-mcv').value,icon=document.getElementById('m-miv').value;
-      if(!label) return alert('请输入名称');if(!date) return alert('请选择日期');
-      if(isEdit){m.label=label;m.date=date;m.color=color;m.icon=icon;}
-      else{S.milestones.push({id:S.nextId++,label,date,color,icon});}
-      hideModal();save();renderGantt();
-    };
-    document.getElementById('m-mn').onkeydown=e=>{if(e.key==='Enter')document.getElementById('m-ok').click();if(e.key==='Escape')hideModal();};
-  },0);
+  const isE=!!m,ic=m?.color||COLORS[3]?.key||COLORS[0].key,ii=m?.icon||'🏆';
+  const io=MILE_ICONS.map(x=>`<span style="font-size:20px;cursor:pointer;padding:5px 8px;border-radius:7px;transition:background .1s;${x===ii?'background:#eef0f8;':''}" class="mi-opt" data-icon="${x}">${x}</span>`).join('');
+  showModal(`<div class="modal-title">${isE?'编辑里程碑':'添加里程碑'}</div><div class="modal-field"><label>名称</label><input id="m-mn" class="modal-input" type="text" value="${isE?escH(m.label):''}" placeholder="里程碑名称"></div><div class="modal-field"><label>日期</label><input id="m-md" class="modal-input" type="date" value="${isE?m.date:(defDate||S.startDate)}"></div><div class="modal-field"><label>图标</label><div style="display:flex;gap:4px;flex-wrap:wrap">${io}<input id="m-miv" type="hidden" value="${ii}"></div></div><div class="modal-field"><label>颜色</label><div id="m-mc" class="color-opts">${colorOptsHtml(ic)}</div><input id="m-mcv" type="hidden" value="${ic}"></div><div class="modal-actions">${isE?'<button class="btn btn-danger" id="m-mdel">删除</button>':''}<button class="btn btn-outline" id="m-cancel">取消</button><button class="btn btn-primary" id="m-ok">确认</button></div>`);
+  setTimeout(()=>{document.getElementById('m-mn').focus();bindColors('m-mc','m-mcv');document.querySelectorAll('.mi-opt').forEach(el=>el.onclick=()=>{document.querySelectorAll('.mi-opt').forEach(x=>x.style.background='');el.style.background='#eef0f8';document.getElementById('m-miv').value=el.dataset.icon});document.getElementById('m-cancel').onclick=hideModal;if(isE)document.getElementById('m-mdel').onclick=()=>{S.milestones=S.milestones.filter(x=>x.id!==m.id);hideModal();save();renderGantt()};document.getElementById('m-ok').onclick=()=>{const label=document.getElementById('m-mn').value.trim(),date=document.getElementById('m-md').value,color=document.getElementById('m-mcv').value,icon=document.getElementById('m-miv').value;if(!label)return alert('请输入名称');if(!date)return alert('请选择日期');if(isE){m.label=label;m.date=date;m.color=color;m.icon=icon}else S.milestones.push({id:S.nextId++,label,date,color,icon});hideModal();save();renderGantt()};document.getElementById('m-mn').onkeydown=e=>{if(e.key==='Enter')document.getElementById('m-ok').click();if(e.key==='Escape')hideModal()}},0)
 }
 
-// ── Export 16:9 ───────────────────────────────────────────────────────────
-async function doExport() {
-  if(!window.html2canvas) return alert('导出库未加载，请检查网络后刷新重试。');
-  const btn=document.getElementById('tb-export');
-  btn.textContent='导出中...';btn.disabled=true;
-  try {
-    const el=document.getElementById('gantt-inner');
-    const w=CANVAS_W, h=Math.round(CANVAS_W*9/16);
-    const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#fff',width:w,height:h,windowWidth:w,windowHeight:h});
-    const a=document.createElement('a');
-    a.download=`测试计划_${todayStr()}.png`;a.href=canvas.toDataURL('image/png');a.click();
-  } catch(e){alert('导出失败：'+e.message);}
-  finally{btn.textContent='📷 导出16:9';btn.disabled=false;}
+// ── Export ────────────────────────────────────────────────────────────────
+async function doExport(){
+  if(!window.html2canvas)return alert('导出库未加载');
+  const btn=document.getElementById('tb-export');btn.textContent='导出中...';btn.disabled=true;
+  try{const el=document.getElementById('gantt-inner'),w=CANVAS_W,h=Math.round(CANVAS_W*9/16);const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:null,width:w,height:h,windowWidth:w,windowHeight:h});const a=document.createElement('a');a.download=`测试计划_${todayStr()}.png`;a.href=canvas.toDataURL('image/png');a.click()}
+  catch(e){alert('导出失败：'+e.message)}
+  finally{btn.textContent='📷 导出16:9';btn.disabled=false}
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', ()=>{
-  load();
-  if(S.rows.length===0){
-    S.rows=[
-      {id:S.nextId++,label:'申请文档',  color:'purple',tasks:[]},
-      {id:S.nextId++,label:'牌照申请车',color:'blue',  tasks:[]},
-      {id:S.nextId++,label:'考试用车',  color:'green', tasks:[]},
-    ];
-    save();
-  }
-  renderToolbar();
-  renderGantt();
-  document.getElementById('modal-overlay').onclick=e=>{if(e.target===document.getElementById('modal-overlay'))hideModal();};
-  window.addEventListener('resize', ()=>{ CANVAS_W=computeCanvasW(); renderGantt(); });
+// ── Init ─────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  load();applyTheme(S.theme||'classic');
+  if(!S.rows.length){S.rows=[{id:S.nextId++,label:'申请文档',color:COLORS[0].key,tasks:[]},{id:S.nextId++,label:'牌照申请车',color:COLORS[1].key,tasks:[]},{id:S.nextId++,label:'考试用车',color:COLORS[2].key,tasks:[]}];save()}
+  renderToolbar();renderGantt();
+  document.getElementById('modal-overlay').onclick=e=>{if(e.target===document.getElementById('modal-overlay'))hideModal()};
+  window.addEventListener('resize',()=>{if(!S.canvasW){CANVAS_W=computeCanvasW();renderGantt()}});
 });
 </script>
 </body>
